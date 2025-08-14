@@ -1,6 +1,10 @@
 import pygame
 from sys import exit
 from creature import Creature
+from bananaspawner import BananaSpawner
+from bananaspawner import Banana
+
+from mouth import Mouth
 
 def main():
     
@@ -10,9 +14,12 @@ def main():
     screen = pygame.display.set_mode((WIDTH,HEIGHT))
 
     clock = pygame.time.Clock()
-    dt = 0
 
-    creature = Creature(WIDTH/2, HEIGHT/2)
+    updatable = pygame.sprite.Group()
+    drawable = pygame.sprite.Group()
+
+    creatures = [Creature(WIDTH/2, HEIGHT/2, updatable)]
+    bananaspawner = BananaSpawner(updatable, drawable)
 
     while True:
         for event in pygame.event.get():
@@ -21,15 +28,23 @@ def main():
                 exit()
 
         # Updates
-        creature.update()
+        updatable.update()
+
+        creatures = list(filter(lambda creature: not creature.dead, creatures))
+        for creature in creatures:
+            creature.update()
+        # bananaspawner.update()
 
         # Draws
         screen.fill("#85B889")
 
-        creature.draw(screen)
+        drawable.draw(screen)
 
+        for creature in creatures:
+            creature.draw(screen)
+        
         pygame.display.update()
-        dt = clock.tick(30) / 1000
+        clock.tick(30)
 
 if __name__ == "__main__":
     main()
