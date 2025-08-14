@@ -1,5 +1,6 @@
 import pygame
 import numpy as np
+from helper import np_to_v2
 
 class DNA:
     def __init__(self):
@@ -9,8 +10,8 @@ class DNA:
         bones = [(0,1), (1,2), (2,3), (3,0)]
         self.bones = sorted({tuple(sorted(b)) for b in bones}) # normalize edges to sorted tuples and dedupe
         
-        boosters = [3,2,0,1] # [bone index, position on bone]
-        self.boosters = np.asarray(boosters)
+        # bone index, side, pos, size
+        self.boosters = []
     
     def get_joints(self):
         return self.structure.keys()
@@ -19,19 +20,18 @@ class DNA:
         bone_positions = [(self.joints[pos1].copy(), self.joints[pos2].copy()) for (pos1, pos2) in self.bones]
         return bone_positions
     
-    def get_bone_pos(self, bone):
-        return (self.joints[bone[0]].copy(), self.joints[bone[1]].copy())
-    
-    def get_booster_positions(self):
-        return map(self.get_bone_center, self.boosters)
+    def get_bone_pos(self, bone_index):
+        bone = self.bones[int(bone_index)]
+        return np.array((self.joints[bone[0]].copy(), self.joints[bone[1]].copy()))
     
     def get_bone_center(self, bone_index):
-        pos1, pos2 = self.get_bone_pos(self.bones[int(bone_index)])
-        v1, v2 = pygame.Vector2(tuple(pos1)), pygame.Vector2(tuple(pos2))
-
-        center = (v1 + v2) / 2
+        pos1, pos2 = self.get_bone_pos((bone_index))
+        center = (np_to_v2(pos1) + np_to_v2(pos2)) / 2
         return center
     
     def get_bone_vector(self, bone_index):
-        pos1, pos2 = self.get_bone_pos(self.bones[int(bone_index)])
-        return pygame.Vector2(tuple(pos1)) - pygame.Vector2(tuple(pos2))
+        pos1, pos2 = self.get_bone_pos(bone_index)
+        return np_to_v2(pos1) - np_to_v2(pos2)
+
+    def get_booster_rects(self):
+        return map(lambda booster: booster.rect, self.boosters)

@@ -21,7 +21,7 @@ def main():
                 exit()
 
         # Updates
-        creature.update(dt)
+        creature.update()
 
         # Draws
         screen.fill("#85B889")
