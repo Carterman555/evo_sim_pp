@@ -39,7 +39,7 @@ class Creature():
         self.damping = 0.98  # Air resistance
         self.angular_damping = 0.95  # Rotational air resistance
 
-        # self.dna.boosters.append(Booster(self,bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=100,size=30))
+        self.dna.boosters.append(Booster(self,bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=100,size=30))
         self.dna.mouths.append(Mouth(self,bone_index=2,side=BoneSide.BOTTOM,pos_on_bone=120,size=200))
         
         self.max_energy = 100
@@ -100,6 +100,7 @@ class Creature():
 
         self.energy -= energy_drain/100
         if self.energy <= 0:
+            print(f"Pos: {self.pos}")
             Creature._instances.remove(self)
 
 
@@ -154,7 +155,8 @@ class Creature():
     def global_pos(self, local_pos):
         """Convert local position to global world position"""
         # Translate to origin (relative to center of mass)
-        relative_pos = local_pos - self.center_of_mass
+
+        relative_pos = (local_pos-self.offset) - self.center_of_mass
 
         # Rotate around origin
         cos_angle = np.cos(np.radians(self.angle))

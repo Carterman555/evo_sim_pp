@@ -22,8 +22,8 @@ class Mouth(CreaturePart):
             part_lpos1 = self.rect.center - ((self.size/2) * self.bone_vector)
             part_lpos2 = self.rect.center + ((self.size/2) * self.bone_vector)
 
-            part_gpos1 = self.creature.global_pos(part_lpos1 - self.creature.offset)
-            part_gpos2 = self.creature.global_pos(part_lpos2 - self.creature.offset)
+            part_gpos1 = self.creature.global_pos(part_lpos1)
+            part_gpos2 = self.creature.global_pos(part_lpos2)
 
             if banana.rect.clipline((part_gpos1, part_gpos2)):
                 self.eat(banana)
