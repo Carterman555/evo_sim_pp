@@ -15,7 +15,5 @@ class Booster(CreaturePart):
         rotated_image, rotated_rect = rotate(self.image, angle, self.rect.center)
         creature_surf.blit(rotated_image, rotated_rect)
 
-
-
-
-        
+    def force_vector(self) -> pygame.Vector2:
+        return self.direction.rotate(self.creature.angle) * self.size * 0.01

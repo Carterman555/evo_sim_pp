@@ -3,5 +3,12 @@ import os
 PROJECT_PATH = os.path.abspath(os.path.join(__file__, '../..'))
 IMAGE_PATH = os.path.join(PROJECT_PATH, 'images')
 
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
+
 BOOSTER_ENERGY_USAGE = 0.1
-BASE_ENERGY_DRAIN = 0.1
+BASE_ENERGY_DRAIN = 100.1
+
+BANANA_ENERGY_GAIN = 20
+
+BANANA_SPAWN_COOLDOWN = 90

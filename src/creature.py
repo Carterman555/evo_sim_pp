@@ -1,4 +1,4 @@
-import pygame
+import pygame, weakref
 from dna import DNA
 import numpy as np
 from helper import *
@@ -9,7 +9,11 @@ from booster import Booster
 from mouth import Mouth
 
 class Creature():
-    def __init__(self, x, y, updatable):
+    _instances = weakref.WeakSet()
+
+    def __init__(self, pos : tuple, updatable):
+        Creature._instances.add(self)
+
         self.dna = DNA()
 
         joint_x_positions = self.dna.joints[:, 0]
@@ -20,7 +24,7 @@ class Creature():
         padding = 20
         self.offset = pygame.Vector2(padding/2, padding/2)
 
-        self.pos = pygame.Vector2(x, y)
+        self.pos = pygame.Vector2(pos)
         self.angle = 0
 
         self.vel = pygame.Vector2(0, 0)
@@ -41,13 +45,12 @@ class Creature():
         self.max_energy = 100
         self.energy = self.max_energy
 
-        self.dead = False
-
         self.surface = pygame.Surface((self.width + padding, self.height + padding), pygame.SRCALPHA)
         self.draw_shapes()
 
+        self.updatable = updatable
         for mouth in self.dna.mouths:
-            updatable.add(mouth)
+            self.updatable.add(mouth)
 
     def calculate_moment_of_inertia(self):
         """Calculate moment of inertia based on joint positions"""
@@ -68,10 +71,8 @@ class Creature():
         total_force = pygame.Vector2(0, 0)
         total_torque = 0
         
-        booster_strength = 0.01
-        
         for booster in self.dna.boosters:
-            force_vector = booster.direction.rotate(self.angle) * booster.size * booster_strength
+            force_vector = booster.force_vector()
             total_force += force_vector
             
             r = self.global_pos(booster.rect.center) - self.global_pos(self.center_of_mass)
@@ -98,8 +99,13 @@ class Creature():
             energy_drain += (booster.size / 10) * BOOSTER_ENERGY_USAGE
 
         self.energy -= energy_drain/100
-        if self.energy <= 0 and not self.dead:
-            self.dead = True
+        if self.energy <= 0:
+            Creature._instances.remove(self)
+
+
+    def reproduce(self):
+        offset = (0,100)
+        Creature(self.pos + offset, self.updatable)
 
 
     def draw(self, screen):
