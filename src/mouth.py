@@ -5,8 +5,8 @@ from helper import *
 from constants import BANANA_ENERGY_GAIN
 
 class Mouth(CreaturePart):
-    def __init__(self, creature, bone_index, side, pos_on_bone, size, *groups):
-        super().__init__(creature, bone_index, side, pos_on_bone, size, *groups)
+    def __init__(self, creature, data, *groups):
+        super().__init__(creature, data, *groups)
 
 
     def draw(self, creature_surf):
@@ -19,8 +19,8 @@ class Mouth(CreaturePart):
 
     def update(self):
         for banana in Banana._instances:
-            part_lpos1 = self.rect.center - ((self.size/2) * self.bone_vector)
-            part_lpos2 = self.rect.center + ((self.size/2) * self.bone_vector)
+            part_lpos1 = self.rect.center - ((self.data.size/2) * self.bone_vector)
+            part_lpos2 = self.rect.center + ((self.data.size/2) * self.bone_vector)
 
             part_gpos1 = self.creature.global_pos(part_lpos1)
             part_gpos2 = self.creature.global_pos(part_lpos2)

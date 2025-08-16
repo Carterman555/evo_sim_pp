@@ -10,6 +10,10 @@ class BananaSpawner:
         self.updatable = updatable
         self.drawable = drawable
 
+        # banana = Banana((650,450))
+        # self.updatable.add(banana)
+        # self.drawable.add(banana)
+
         self.spawn_timer = BANANA_SPAWN_COOLDOWN
 
     def update(self):
@@ -18,7 +22,7 @@ class BananaSpawner:
         if self.spawn_timer <= 0:
             self.spawn_timer = BANANA_SPAWN_COOLDOWN
 
-            self.spawn_banana()
+            # self.spawn_banana()
 
     def spawn_banana(self):
         padding = 40

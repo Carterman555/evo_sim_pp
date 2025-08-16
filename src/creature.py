@@ -9,12 +9,13 @@ from booster import Booster
 from mouth import Mouth
 
 class Creature():
-    _instances = weakref.WeakSet()
+    _instances = set()
 
-    def __init__(self, pos : tuple, updatable):
+    def __init__(self, updatable, dna, pos):
         Creature._instances.add(self)
 
-        self.dna = DNA()
+        self.updatable = updatable
+        self.dna = dna
 
         joint_x_positions = self.dna.joints[:, 0]
         joint_y_positions = self.dna.joints[:, 1]
@@ -39,18 +40,23 @@ class Creature():
         self.damping = 0.98  # Air resistance
         self.angular_damping = 0.95  # Rotational air resistance
 
-        self.dna.boosters.append(Booster(self,bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=100,size=30))
-        self.dna.mouths.append(Mouth(self,bone_index=2,side=BoneSide.BOTTOM,pos_on_bone=120,size=200))
+        self.boosters = []
+        for booster_data in self.dna.booster_data:
+            self.boosters.append(Booster(self, booster_data))
+
+        self.mouths = []
+        for mouth_data in self.dna.mouth_data:
+            self.mouths.append(Mouth(self, mouth_data, updatable))
         
         self.max_energy = 100
         self.energy = self.max_energy
 
+        self.invincible = True # start invincible for a little
+        self.invincibilty_timer = INVINCIBILITY_TIME
+
         self.surface = pygame.Surface((self.width + padding, self.height + padding), pygame.SRCALPHA)
         self.draw_shapes()
 
-        self.updatable = updatable
-        for mouth in self.dna.mouths:
-            self.updatable.add(mouth)
 
     def calculate_moment_of_inertia(self):
         """Calculate moment of inertia based on joint positions"""
@@ -71,7 +77,7 @@ class Creature():
         total_force = pygame.Vector2(0, 0)
         total_torque = 0
         
-        for booster in self.dna.boosters:
+        for booster in self.boosters:
             force_vector = booster.force_vector()
             total_force += force_vector
             
@@ -93,15 +99,18 @@ class Creature():
         
         self.angle = self.angle % 360
 
-
         energy_drain = BASE_ENERGY_DRAIN
-        for booster in self.dna.boosters:
-            energy_drain += (booster.size / 10) * BOOSTER_ENERGY_USAGE
+        for booster in self.boosters:
+            energy_drain += (booster.data.size / 10) * BOOSTER_ENERGY_USAGE
 
         self.energy -= energy_drain/100
         if self.energy <= 0:
-            print(f"Pos: {self.pos}")
             Creature._instances.remove(self)
+
+        if self.invincible:
+            self.invincibilty_timer -= 1
+            if self.invincibilty_timer < 0:
+                self.invincible = False
 
 
     def reproduce(self):
@@ -113,6 +122,10 @@ class Creature():
         # offset is center of mass relative to center instead of topleft
         offset = pygame.Vector2(self.width/2, self.height/2) - self.center_of_mass 
         rotated_surf, rect = rotate(self.surface, self.angle, self.pos, offset)
+
+        if self.invincible:
+            rotated_surf.set_alpha(100)
+
         screen.blit(rotated_surf, rect)
 
         # energy bar
@@ -126,7 +139,7 @@ class Creature():
         pygame.draw.rect(screen, 'lightgreen', energy_bar)
 
     def draw_shapes(self):
-        #self.surface.fill((0,0,0,20)) # to visualize surface
+        self.surface.fill((0,0,0,20)) # to visualize surface
 
         # bones
         for bone in self.dna.get_bone_positions():
@@ -140,11 +153,11 @@ class Creature():
             pygame.draw.circle(self.surface, 'red', self.offset + joint_pos, radius=5)
 
         # boosters
-        for booster in self.dna.boosters:
+        for booster in self.boosters:
             booster.draw(self.surface)
 
         # mouths
-        for mouth in self.dna.mouths:
+        for mouth in self.mouths:
             mouth.draw(self.surface)
 
 

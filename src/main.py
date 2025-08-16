@@ -1,8 +1,17 @@
 import pygame
 from sys import exit
+
 from creature import Creature
+from creaturepart import CreaturePartData
+from dna import DNA
+from mouth import Mouth
+from mutate_dna import mutate_dna
+
 from bananaspawner import BananaSpawner
+
 from constants import *
+from enums import BoneSide
+
 
 def main():
     
@@ -15,7 +24,21 @@ def main():
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
 
-    Creature((SCREEN_WIDTH/2, SCREEN_HEIGHT/2), updatable)
+    joints = [[0, 0], [150, 0], [100, 100], [0, 100]]
+    bones = [(0,1), (1,2), (2,3), (3,0)]
+    # booster_data = [CreaturePartData(bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=100,size=30)]
+    booster_data = []
+    # mouth_data = [CreaturePartData(bone_index=2,side=BoneSide.BOTTOM,pos_on_bone=25,size=20)]
+    mouth_data = []
+
+    dna = DNA(joints, bones, booster_data, mouth_data)
+    Creature(updatable, dna, (100, SCREEN_HEIGHT/2))
+
+    for x in range(1):
+        dna = mutate_dna(dna)
+        Creature(updatable, dna, (310 + 200*x, SCREEN_HEIGHT/2))
+
+
     bananaspawner = BananaSpawner(updatable, drawable)
 
     while True:

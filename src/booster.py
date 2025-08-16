@@ -3,9 +3,8 @@ from helper import *
 from creaturepart import CreaturePart
 
 class Booster(CreaturePart):
-    def __init__(self, creature, bone_index, side, pos_on_bone, size, *groups):
-        super().__init__(creature, bone_index, side, pos_on_bone, size, *groups)
-
+    def __init__(self, creature, data):
+        super().__init__(creature, data)
 
     def draw(self, creature_surf):
         self.image.fill('cyan')
@@ -16,4 +15,4 @@ class Booster(CreaturePart):
         creature_surf.blit(rotated_image, rotated_rect)
 
     def force_vector(self) -> pygame.Vector2:
-        return self.direction.rotate(self.creature.angle) * self.size * 0.01
+        return self.direction.rotate(self.creature.angle) * self.data.size * 0.01
