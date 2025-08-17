@@ -31,7 +31,7 @@ class Graph:
             return False
 
         # possible speed up: use np methods instead of for loop
-        for i in range(len(self.edges) - 1, 0, -1):
+        for i in range(len(self.edges)):
             # correct edges
             if self.edges[i][0] > vertex_index:
                 self.edges[i][0] -= 1
@@ -52,26 +52,47 @@ class Graph:
         
         # possible speed up: I think creating new graph might cost significant memory
         temp_graph = Graph(self.vertices, self.edges)
+
         removing_edge = temp_graph.edges[edge_index]
         
         temp_graph.edges = np.delete(temp_graph.edges, [edge_index], axis=0)
 
-        print(f'temp_graph.vertices: {temp_graph.vertices}')
-        print(f'removing_edge: {removing_edge}')
-
         # if either vertex connected to edge has no other connections, remove it
-        if not np.any(temp_graph.edges == removing_edge[0]):
-            print(f"try remove vertex {temp_graph.vertices[removing_edge[0]]}")
-            self.try_remove_vertex(removing_edge[0])
-
-        if not np.any(temp_graph.vertices == removing_edge[1]):
-            print(f"try remove vertex {temp_graph.vertices[removing_edge[1]]}")
-            self.try_remove_vertex(removing_edge[1])
-
-
+        temp_graph.try_remove_vertex(removing_edge[0])
+        temp_graph.try_remove_vertex(removing_edge[1])
         
-        self.vertices = temp_graph.vertices.copy()
-        self.edges = temp_graph.edges.copy()
-        return True
+
+        if self.is_connected():
+            self.vertices = temp_graph.vertices.copy()
+            self.edges = temp_graph.edges.copy()
+            return True
+        else:
+            return False
+    
+    def is_connected(self):
+
+        if len(self.edges) == 0:
+            return False
+
+        remaining_edges = self.edges.copy()
+        def find_connections_r(edge_index):
+            nonlocal remaining_edges
+
+            edge = remaining_edges[edge_index]
+            remaining_edges = np.delete(remaining_edges, [edge_index], axis=0)
+
+            for edge_value in edge:
+                rows, cols = np.where(remaining_edges == edge_value)
+
+                no_connections = len(rows) == 0
+                if no_connections:
+                    continue
+
+                connected_edge_index = rows[0]
+                find_connections_r(connected_edge_index)
+
+        find_connections_r(0)
+
+        return len(remaining_edges) == 0
 
         

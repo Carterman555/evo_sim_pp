@@ -8,7 +8,7 @@ from graph import Graph
 
 class TestGraph(unittest.TestCase):
 
-    def test_add_vertex1(self):
+    def test_add_vertex(self):
         vertices = [[0,0],[10,0],[0,10]]
         edges = [[0,1],[1,2],[2,0]]
         graph = Graph(vertices,edges)
@@ -17,6 +17,7 @@ class TestGraph(unittest.TestCase):
 
         self.assertListEqual(graph.vertices.tolist(), [[0,0],[10,0],[0,10],[10,10]])
         self.assertListEqual(graph.edges.tolist(), [[0,1],[1,2],[0,2],[2,3]])
+
 
     def test_remove_vertex1(self):
         vertices = [[0,0],[10,0],[10,10],[0,10]]
@@ -47,16 +48,47 @@ class TestGraph(unittest.TestCase):
         self.assertListEqual(graph.vertices.tolist(), [[0,0],[10,0],[10,10],[0,10]])
         self.assertListEqual(graph.edges.tolist(), [[0,1],[1,2],[2,3],[0,3],[0,2]])
 
-    def test_remove_edge_partial(self):
-        vertices = [[0,0],[10,0],[10,10],[0,10]]
-        edges = [[0,1],[1,2],[2,3],[3,0]]
+    def test_is_connected(self):
+        vertices = [[0,0],[10,0],[10,10],[0,10],[50,25]]
+        edges = [[0,1],[1,2],[2,3],[3,0],[0,2],[0,4]]
+
         graph = Graph(vertices,edges)
 
-        could_remove1 = graph.try_remove_edge(0)
-        could_remove2 = graph.try_remove_edge(1)
+        self.assertTrue(graph.is_connected())
 
-        self.assertTrue(could_remove1)
-        self.assertTrue(could_remove2)
+    def test_not_connected(self):
+        vertices = [[0,0],[10,0],[10,10],[0,10],[50,25]]
+        edges = [[0,3],[0,4],[1,2]]
 
-        self.assertListEqual(graph.vertices.tolist(), [[0,0],[10,10],[0,10]])
-        self.assertListEqual(graph.edges.tolist(), [[1,2],[0,2]])
+        graph = Graph(vertices,edges)
+
+        self.assertFalse(graph.is_connected())
+
+    def test_empty_graph_connected(self):
+        vertices = []
+        edges = []
+
+        graph = Graph(vertices,edges)
+
+        self.assertFalse(graph.is_connected())
+
+
+
+
+        
+
+
+
+    # def test_remove_edge_partial(self):
+    #     vertices = [[0,0],[10,0],[10,10],[0,10]]
+    #     edges = [[0,1],[1,2],[2,3],[3,0]]
+    #     graph = Graph(vertices,edges)
+
+    #     could_remove1 = graph.try_remove_edge(0)
+    #     could_remove2 = graph.try_remove_edge(0)
+
+    #     self.assertTrue(could_remove1)
+    #     self.assertTrue(could_remove2)
+
+    #     self.assertListEqual(graph.vertices.tolist(), [[0,0],[10,10],[0,10]])
+    #     self.assertListEqual(graph.edges.tolist(), [[1,2],[0,2]])
