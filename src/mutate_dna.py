@@ -41,7 +41,7 @@ def mutate_dna(dna: DNA) -> DNA:
 
         mutated_dna.check_bones_sorted()
 
-        # could be written faster
+        # speed up
         for i in range(len(mutated_dna.joints)):
             for j in range(i+1, len(mutated_dna.joints)):
                 bone = np.array((i,j))
@@ -59,6 +59,10 @@ def mutate_dna(dna: DNA) -> DNA:
     for x in range(2):
         count = 0
 
+        remaining_bone_indices = np.arange(len(mutated_dna.bones))
+
+        # speed up: I'm having it remove bones then check if valid. There might be faster algorithm to check all valid
+        # bones to remove.
         # while created disconnected structure
         while count == 0:
             count+=1
@@ -66,13 +70,25 @@ def mutate_dna(dna: DNA) -> DNA:
             bones = mutated_dna.bones.copy()
             joints = mutated_dna.joints.copy()
 
-            bone_index = random.randint(len(bones))
+            bone_index = random.choice(remaining_bone_indices)
+            remaining_bone_indices = np.delete(remaining_bone_indices, bone_index)
 
-            # if either joint connected to choosen bone has no other connections, remove it
-            # if not np.any(bones[bone_index][0], bones)
+            bone_removing = bones[bone_index].copy()
 
             # remove bone
             bones = np.delete(bones, [bone_index], axis=0)
+
+            # if either joint connected to choosen bone has no other connections, remove it
+            if not np.any(bones == bone_removing[0]):
+                joints = np.delete(joints, [bone_removing[0]], axis=0)
+
+            if not np.any(bones == bone_removing[1]):
+                joints = np.delete(joints, [bone_removing[1]], axis=0)
+
+        mutated_dna.bones = bones
+        mutated_dna.joints = joints
+
+    print()
 
 
     mutated_dna.normalize_joint_positions()
