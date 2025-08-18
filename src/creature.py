@@ -17,8 +17,11 @@ class Creature():
         self.updatable = updatable
         self.dna = dna
 
-        joint_x_positions = self.dna.joints[:, 0]
-        joint_y_positions = self.dna.joints[:, 1]
+        self.joints = self.dna.structure.vertices
+        self.bones = self.dna.structure.edges
+
+        joint_x_positions = self.joints[:, 0]
+        joint_y_positions = self.joints[:, 1]
         self.width = joint_x_positions.max() - joint_x_positions.min()
         self.height = joint_y_positions.max() - joint_y_positions.min()
 
@@ -32,10 +35,10 @@ class Creature():
         self.angvel = 0  # Start with no angular velocity
         
         # Physics properties
-        self.center_of_mass = (self.dna.joints.sum(axis=0) / len(self.dna.joints))
+        self.center_of_mass = (self.joints.sum(axis=0) / len(self.joints))
         self.center_of_mass += self.offset
 
-        self.mass = len(self.dna.joints)  # Mass proportional to number of joints
+        self.mass = len(self.joints)  # Mass proportional to number of joints
         self.moment_of_inertia = self.calculate_moment_of_inertia()
         self.damping = 0.98  # Air resistance
         self.angular_damping = 0.95  # Rotational air resistance
@@ -61,7 +64,7 @@ class Creature():
     def calculate_moment_of_inertia(self):
         """Calculate moment of inertia based on joint positions"""
         I = 0
-        for joint in self.dna.joints:
+        for joint in self.joints:
             joint_pos = joint + self.offset
             distance = (joint_pos - self.center_of_mass) / 10 # divide by 10 because r squared gets really large without it
             r_squared = (distance ** 2).sum()
@@ -142,14 +145,15 @@ class Creature():
         self.surface.fill((0,0,0,20)) # to visualize surface
 
         # bones
-        for bone in self.dna.get_bone_positions():
+        bone_positions = self.dna.structure.get_edge_positions()
+        for bone in bone_positions:
             start_pos = bone[0]
             end_pos = bone[1]
             pygame.draw.line(self.surface, 'white', self.offset + start_pos, self.offset + end_pos, 3)
             
         # joints
-        for joint in self.dna.joints:
-            joint_pos = tuple(joint)
+        for joint_pos in self.dna.structure.vertices:
+            # joint_pos = tuple(joint_pos) # TODO - remove this line if useless
             pygame.draw.circle(self.surface, 'red', self.offset + joint_pos, radius=5)
 
         # boosters

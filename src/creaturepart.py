@@ -21,7 +21,9 @@ class CreaturePart(pygame.sprite.Sprite):
 
         self.data = data
 
-        self.direction = creature.dna.get_bone_vector(data.bone_index).normalize()
+        self.bone_vector = self.creature.dna.get_bone_vector(data.bone_index).normalize()
+
+        self.direction = self.bone_vector.copy()
         if data.side == BoneSide.BOTTOM:
             self.direction.rotate_ip(270)
         elif data.side == BoneSide.TOP:
@@ -30,8 +32,7 @@ class CreaturePart(pygame.sprite.Sprite):
         height = 5
         self.image = pygame.Surface((data.size, height), pygame.SRCALPHA)
 
-        self.bone_positions = self.creature.dna.get_bone_pos(data.bone_index)
-        self.bone_vector = self.creature.dna.get_bone_vector(data.bone_index).normalize()
+        self.bone_positions = self.creature.dna.structure.get_edge_pos(data.bone_index)
 
         center = self.bone_positions[0] - (self.bone_vector * data.pos_on_bone)
         self.rect = self.image.get_rect(center=center + creature.offset)

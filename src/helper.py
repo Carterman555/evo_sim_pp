@@ -23,7 +23,7 @@ def np_to_v2(np_array: np.ndarray) -> pygame.Vector2:
 
 
 def valid_part_pos(creature, bone_index, pos_on_bone, width):
-    bone_positions = creature.dna.get_bone_pos(bone_index)
+    bone_positions = creature.dna.structure.get_edge_pos(bone_index)
     bone_vector = creature.dna.get_bone_vector(bone_index).normalize()
 
     center = bone_positions[0] - (bone_vector * pos_on_bone)

@@ -24,15 +24,15 @@ def main():
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
 
-    joints = [[0, 0], [150, 0], [100, 100], [0, 100]]
+    joints = [[0, 0], [75, 0], [50, 50], [0, 50]]
     bones = [(0,1), (1,2), (2,3), (3,0)]
     # booster_data = [CreaturePartData(bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=100,size=30)]
-    booster_data = []
     # mouth_data = [CreaturePartData(bone_index=2,side=BoneSide.BOTTOM,pos_on_bone=25,size=20)]
+    booster_data = []
     mouth_data = []
 
     dna = DNA(joints, bones, booster_data, mouth_data)
-    Creature(updatable, dna, (100, SCREEN_HEIGHT/2))
+    Creature(updatable, dna, (200, SCREEN_HEIGHT/2))
 
     for x in range(1):
         dna = mutate_dna(dna)
