@@ -10,7 +10,7 @@ from mutate_dna import mutate_dna
 from bananaspawner import BananaSpawner
 
 from constants import *
-from enums import BoneSide
+from enums import *
 
 
 def main():
@@ -26,17 +26,19 @@ def main():
 
     joints = [[0, 0], [75, 0], [50, 50], [0, 50]]
     bones = [(0,1), (1,2), (2,3), (3,0)]
-    # booster_data = [CreaturePartData(bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=100,size=30)]
-    # mouth_data = [CreaturePartData(bone_index=2,side=BoneSide.BOTTOM,pos_on_bone=25,size=20)]
-    booster_data = []
-    mouth_data = []
+    booster_data = [CreaturePartData(PartType.BOOSTER, bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=50,size=20),
+                    CreaturePartData(PartType.BOOSTER, bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=20,size=20)]
+    mouth_data = [CreaturePartData(PartType.MOUTH, bone_index=2,side=BoneSide.BOTTOM,pos_on_bone=25,size=20)]
+    # booster_data = []
+    # mouth_data = []
 
     dna = DNA(joints, bones, booster_data, mouth_data)
-    Creature(updatable, dna, (200, SCREEN_HEIGHT/2))
+    # Creature(updatable, dna, (100, 100))
 
-    for x in range(1):
-        dna = mutate_dna(dna)
-        Creature(updatable, dna, (310 + 200*x, SCREEN_HEIGHT/2))
+    for y in range(0,4):
+        for x in range(0,4):
+            Creature(updatable, dna, (100 + 100*x, 100 + 100*y))
+            dna = mutate_dna(dna)
 
 
     bananaspawner = BananaSpawner(updatable, drawable)

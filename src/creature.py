@@ -92,13 +92,13 @@ class Creature():
         acceleration = total_force / self.mass
         self.vel += acceleration
         self.vel *= self.damping
-        self.pos += self.vel
+        # self.pos += self.vel
 
         # Apply rotational physics
         angular_acceleration = total_torque / self.moment_of_inertia
         self.angvel += angular_acceleration
         self.angvel *= self.angular_damping
-        self.angle += self.angvel
+        # self.angle += self.angvel
         
         self.angle = self.angle % 360
 

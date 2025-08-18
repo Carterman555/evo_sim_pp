@@ -16,6 +16,8 @@ BANANA_ENERGY_GAIN = 20
 BANANA_SPAWN_COOLDOWN = 90 # frames
 
 # mutations
+TEST_PROB_MULT = 1
+
 MOVE_JOINT_PROB = 0.10
 AVG_JOINT_MOVE_AMOUNT = 5
 
@@ -25,6 +27,9 @@ NEW_JOINT_DIST = 15
 ADD_BONE_PROB = 0.03
 REMOVE_BONE_PROB = 0.03
 
+MIN_PART_SIZE = 5
+PART_PADDING = 5
+
 MOVE_PART_PROB = 0.05
 AVG_PART_MOVE_AMOUNT = 5
 
@@ -32,4 +37,4 @@ RESIZE_PART_PROB = 0.05
 AVG_PART_RESIZE_AMOUNT = 3
 
 ADD_PART_PROB = 0.01
-REMOVE_PART_PROB = 0.01 # note for implementation: chance to remove one part, don't loop through parts and have a 0.01 probably to remove each because then parts are more likely to be removed than added
+REMOVE_PART_PROB = 0.01

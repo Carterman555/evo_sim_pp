@@ -1,8 +1,8 @@
 import pygame
 from creaturepart import CreaturePart
 from banana import Banana
-from helper import *
 from constants import BANANA_ENERGY_GAIN
+from helper import *
 
 class Mouth(CreaturePart):
     def __init__(self, creature, data, *groups):

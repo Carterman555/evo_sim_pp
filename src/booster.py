@@ -1,9 +1,11 @@
 import pygame
-from helper import *
+from creaturepart import CreaturePartData
 from creaturepart import CreaturePart
 
+from helper import *
+
 class Booster(CreaturePart):
-    def __init__(self, creature, data):
+    def __init__(self, creature, data: CreaturePartData):
         super().__init__(creature, data)
 
     def draw(self, creature_surf):
