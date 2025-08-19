@@ -10,6 +10,9 @@ class CreaturePartData:
         self.pos_on_bone = pos_on_bone
         self.size = size
 
+    def copy(self):
+        return CreaturePartData(self.type, self.bone_index, self.side, self.pos_on_bone, self.size)
+    
     def __str__(self):
         return f"CreaturePartData(type={self.type}, bone={self.bone_index}, side={self.side}, pos={self.pos_on_bone}, size={self.size})"
 

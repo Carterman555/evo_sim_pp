@@ -1,4 +1,4 @@
-import pygame, random
+import pygame
 import numpy as np
 from numpy import random as nr
 
@@ -11,55 +11,49 @@ from helper import *
 
 def mutate_dna(dna: DNA) -> DNA:
 
-    mutated_dna = dna.get_copy()
+    mutated_dna = dna.copy()
 
-    remove_bone(mutated_dna)
-
-    # for i in range(len(mutated_dna.structure.vertices)):
-    #     if MOVE_JOINT_PROB * TEST_PROB_MULT > nr.rand():
-    #         move_joint(mutated_dna, i)
+    for i in range(len(mutated_dna.structure.vertices)):
+        if MOVE_JOINT_PROB * TEST_PROB_MULT > nr.rand():
+            move_joint(mutated_dna, i)
 
 
-    # if ADD_JOINT_PROB * TEST_PROB_MULT > nr.rand():
-    #     add_joint(mutated_dna)
+    if ADD_JOINT_PROB * TEST_PROB_MULT > nr.rand():
+        add_joint(mutated_dna)
 
 
-    # if ADD_BONE_PROB * TEST_PROB_MULT > nr.rand():
-    #     add_bone(mutated_dna)
+    if ADD_BONE_PROB * TEST_PROB_MULT > nr.rand():
+        add_bone(mutated_dna)
 
 
-    # if REMOVE_BONE_PROB * TEST_PROB_MULT > nr.rand():
-    #     remove_bone(mutated_dna)
+    if REMOVE_BONE_PROB * TEST_PROB_MULT > nr.rand():
+        remove_bone(mutated_dna)
 
     
-    # parts_data = all_part_data(mutated_dna)
-    # for part_data in parts_data:
-    #     if MOVE_PART_PROB * TEST_PROB_MULT > nr.rand():
-    #         move_part(mutated_dna, part_data)
-    #     if RESIZE_PART_PROB * TEST_PROB_MULT > nr.rand():
-    #         resize_part(mutated_dna, part_data)
+    parts_data = all_part_data(mutated_dna)
+    for part_data in parts_data:
+        if MOVE_PART_PROB * TEST_PROB_MULT > nr.rand():
+            move_part(mutated_dna, part_data)
+        if RESIZE_PART_PROB * TEST_PROB_MULT > nr.rand():
+            resize_part(mutated_dna, part_data)
 
 
-    # if ADD_PART_PROB * TEST_PROB_MULT > nr.rand():
-    #     add_part(mutated_dna)
-
-
-    # parts_amount = len(all_part_data(mutated_dna))
-    # if parts_amount > 0 and REMOVE_PART_PROB * TEST_PROB_MULT > nr.rand():
-    #     remove_rand_part(mutated_dna)
+    if ADD_PART_PROB * TEST_PROB_MULT > nr.rand():
+        add_part(mutated_dna)
 
 
     mutated_dna.structure.normalize_vertices()
     return mutated_dna
 
 
-def move_joint(dna: DNA, joint_index: int):
+def move_joint(dna: DNA, joint_index: int, move_vector = None):
 
     connected_bone_indices = np.where(dna.structure.edges == joint_index)[0].tolist()
     og_bone_lengths = [(i, dna.get_bone_vector(i).magnitude()) for i in connected_bone_indices]
 
     # move the joint
-    move_vector = pygame.Vector2(nr.randn()*AVG_JOINT_MOVE_AMOUNT, nr.randn()*AVG_JOINT_MOVE_AMOUNT)
+    if move_vector == None:
+        move_vector = round(pygame.Vector2(nr.randn()*AVG_JOINT_MOVE_AMOUNT, nr.randn()*AVG_JOINT_MOVE_AMOUNT))
     dna.structure.vertices[joint_index] = np.array(dna.structure.vertices[joint_index] + move_vector)
 
     # move and resize parts if needed
@@ -77,43 +71,44 @@ def move_joint(dna: DNA, joint_index: int):
             moved_first_joint = dna.structure.edges[part_data.bone_index][0] == joint_index
             if moved_first_joint:
                 part_data.pos_on_bone += bone_length_change
+                part_data.pos_on_bone = np.floor(part_data.pos_on_bone)
 
                 # If bone shrunk, and there is a part near the joint, shrink the part.
                 distance_from_joint = part_data.pos_on_bone
-                if distance_from_joint < part_data.size/2:
-
+                if distance_from_joint < part_data.size/2 + PART_PADDING:
                     og_pos = part_data.pos_on_bone - bone_length_change
                     og_right_side = og_pos + part_data.size/2
                     new_right_side = og_right_side + bone_length_change
 
-                    part_data.size = new_right_side
-                    part_data.pos_on_bone = part_data.size/2
+                    part_data.size = np.floor(new_right_side) - PART_PADDING
+                    part_data.pos_on_bone = np.ceil(part_data.size/2 + PART_PADDING/2)
 
                     # if bone shrunk enough to leave no room for part, remove it
-                    if part_data.size <= 0:
+                    if part_data.size <= MIN_PART_SIZE:
                         remove_part(dna, part_data)
+                        continue
 
             else:
                 new_distance_from_joint = new_length - part_data.pos_on_bone
-                if new_distance_from_joint < part_data.size/2:
-
+                if new_distance_from_joint < part_data.size/2 + PART_PADDING:
                     og_distance_from_joint = og_length - part_data.pos_on_bone
                     og_left_side = og_distance_from_joint + part_data.size/2 # distance between left side of part and moved joint
                     new_left_side = og_left_side + bone_length_change
 
-                    part_data.size = new_left_side
+                    part_data.size = np.floor(new_left_side) - PART_PADDING
 
                     distance = new_length - new_left_side # distance between left side of part and first joint
-                    part_data.pos_on_bone = distance + part_data.size/2
+                    part_data.pos_on_bone = np.floor(distance + part_data.size/2 - PART_PADDING/2)
 
                     # if bone shrunk enough to leave no room for part, remove it
-                    if part_data.size <= 0:
+                    if part_data.size <= MIN_PART_SIZE:
                         remove_part(dna, part_data)
+                        continue
+
+            if not valid_part_pos(dna, part_data.bone_index, part_data.pos_on_bone, part_data.size):
+                raise Exception("Trying to adjust part from joint movement, but part is in invalid pos.")
 
                     
-
-
-
 
 def add_joint(dna: DNA):
     # spawn near random joint
@@ -122,6 +117,7 @@ def add_joint(dna: DNA):
 
     random_dir = get_random_direction()
     new_joint = og_joint + (np.array(random_dir) * NEW_JOINT_DIST)
+    new_joint = np.round(new_joint)
 
     dna.structure.add_vertex(og_joint_index, new_joint)
 
@@ -143,7 +139,7 @@ def add_bone(dna: DNA):
         new_bone = possible_bones[nr.randint(len(possible_bones))]
         new_bone = np.asarray(new_bone, dtype=int)
         dna.structure.add_edge(new_bone)
-
+    
 
 def remove_bone(dna: DNA):
     remaining_bone_indices = np.arange(len(dna.structure.edges))
@@ -169,24 +165,30 @@ def remove_bone(dna: DNA):
                 part_data.bone_index -= 1
 
 
-def move_part(dna: DNA, part_data: CreaturePartData):
+def move_part(dna: DNA, part_data: CreaturePartData, desired_move_amount = None):
 
-    min_pos_on_bone = part_data.size/2
+    min_pos_on_bone = np.ceil(part_data.size/2) + PART_PADDING
 
     bone_length = dna.get_bone_vector(part_data.bone_index).magnitude()
-    max_pos_on_bone = bone_length - part_data.size/2
+    max_pos_on_bone = np.floor(bone_length - part_data.size/2) - PART_PADDING
+
+    if min_pos_on_bone > max_pos_on_bone:
+        print(f"Warning: Trying to move bone and min pos on bone is greater than max. Part should not exist on a bone this small. {dna.structure}{part_data}")
+        return
 
     original_pos = part_data.pos_on_bone
 
-    desired_move_amount = nr.randn() * AVG_PART_MOVE_AMOUNT
+    if desired_move_amount == None:
+        desired_move_amount = nr.randn() * AVG_PART_MOVE_AMOUNT
     part_data.pos_on_bone += desired_move_amount
+    part_data.pos_on_bone = round(part_data.pos_on_bone)
     part_data.pos_on_bone = np.clip(part_data.pos_on_bone, min_pos_on_bone, max_pos_on_bone)
 
     if overlapping_parts(dna, part_data):
         part_data.pos_on_bone = original_pos
 
     if not valid_part_pos(dna, part_data.bone_index, part_data.pos_on_bone, part_data.size):
-        raise Exception("Try to move part to invalid pos.")
+        raise Exception("Trying to move part to invalid pos.")
 
 
 def resize_part(dna: DNA, part_data: CreaturePartData):
@@ -199,16 +201,24 @@ def resize_part(dna: DNA, part_data: CreaturePartData):
 
     shorter_distance = np.min((distance1, distance2))
 
-    max_size = shorter_distance * 2
+    max_size = np.floor((shorter_distance-PART_PADDING) * 2)
 
     original_size = part_data.size
 
     desired_resize_amount = nr.randn() * AVG_PART_RESIZE_AMOUNT
     part_data.size += desired_resize_amount
-    part_data.size = np.clip(part_data.size, MIN_PART_SIZE, max_size)
+    part_data.size = np.floor(part_data.size)
+    part_data.size = np.min((part_data.size, max_size))
+
+    if part_data.size <= 0:
+        remove_part(dna, part_data)
+        return
 
     if overlapping_parts(dna, part_data):
         part_data.size = original_size
+
+    if not valid_part_pos(dna, part_data.bone_index, part_data.pos_on_bone, part_data.size):
+        raise Exception("Trying to resize part, but invalid pos.")
 
 
 def add_part(dna: DNA):
@@ -227,12 +237,16 @@ def add_part(dna: DNA):
         bone_index = nr.randint(len(dna.structure.edges))
         bone_side = nr.choice(BoneSide)
 
-        min_pos_on_bone = MIN_PART_SIZE/2
+        min_pos_on_bone = np.ceil(MIN_PART_SIZE/2)
 
         bone_length = dna.get_bone_vector(bone_index).magnitude()
-        max_pos_on_bone = bone_length - MIN_PART_SIZE/2
+        max_pos_on_bone = np.floor(bone_length - MIN_PART_SIZE/2)
 
-        pos_on_bone = nr.uniform(min_pos_on_bone, max_pos_on_bone)
+        bone_too_small = max_pos_on_bone - min_pos_on_bone < MIN_PART_SIZE
+        if bone_too_small:
+            continue
+
+        pos_on_bone = nr.randint(min_pos_on_bone, max_pos_on_bone)
 
         part_data = CreaturePartData(part_type, bone_index, bone_side, pos_on_bone, MIN_PART_SIZE)
 
@@ -243,20 +257,8 @@ def add_part(dna: DNA):
     if part_type == PartType.MOUTH:
         dna.mouth_data.append(part_data)
 
-        
-def remove_rand_part(dna: DNA):
-
-    booster_data = [(PartType.BOOSTER, i) for i in range(len(dna.booster_data))]
-    mouth_data = [(PartType.MOUTH, i) for i in range(len(dna.mouth_data))]
-
-    all_data = booster_data + mouth_data
-
-    part_type, index = random.choice(all_data)
-
-    if part_type == PartType.BOOSTER:
-        dna.booster_data.pop(index)
-    elif part_type == PartType.MOUTH:
-        dna.mouth_data.pop(index)
+    if not valid_part_pos(dna, part_data.bone_index, part_data.pos_on_bone, part_data.size):
+        raise Exception("Trying to add part to invalid pos.")
 
 
 def remove_part(dna: DNA, part_data: CreaturePartData):

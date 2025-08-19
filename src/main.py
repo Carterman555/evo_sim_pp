@@ -24,26 +24,31 @@ def main():
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
 
-    joints = [[0, 0], [75, 0], [50, 50], [0, 50]]
-    bones = [(0,1), (1,2), (2,3), (3,0)]
-    booster_data = [CreaturePartData(PartType.BOOSTER, bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=50,size=20),
-                    CreaturePartData(PartType.BOOSTER, bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=20,size=20)]
-    mouth_data = [CreaturePartData(PartType.MOUTH, bone_index=2,side=BoneSide.BOTTOM,pos_on_bone=25,size=20)]
-    # booster_data = []
-    # mouth_data = []
+    for x in range(200):
+        joints = [[0, 0], [75, 0], [50, 50], [0, 50]]
+        bones = [(0,1), (1,2), (2,3), (3,0)]
+        booster_data = [CreaturePartData(PartType.BOOSTER, bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=50,size=20),
+                        CreaturePartData(PartType.BOOSTER, bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=20,size=20)]
+        mouth_data = [CreaturePartData(PartType.MOUTH, bone_index=2,side=BoneSide.BOTTOM,pos_on_bone=25,size=20)]
 
-    dna = DNA(joints, bones, booster_data, mouth_data)
-    # Creature(updatable, dna, (100, 100))
+        dna = DNA(joints, bones, booster_data, mouth_data)
 
-    rows = 1
-    columns = 2
-    for y in range(0,rows):
-        for x in range(0,columns):
-            Creature(updatable, dna, (100 + 100*x, 100 + 100*y))
+        rows = 20
+        columns = 20
+        for y in range(0,rows):
+            for x in range(0,columns):
+                Creature(updatable, dna, (100 + 150*x, 300 + 100*y))
 
-            last_creature = y == rows-1 and x == columns-1
-            if not last_creature:
-                dna = mutate_dna(dna)
+                last_creature = y == rows-1 and x == columns-1
+                if not last_creature:
+                    dna = mutate_dna(dna)
+
+        # joints = [[0, 0], [56, 67], [10, 66]]
+        # bones = [[1, 2], [0, 2]]
+        # boosters = [CreaturePartData(PartType.BOOSTER, bone_index=0, side=BoneSide.BOTTOM, pos_on_bone=37, size=18)]
+
+        # dna = DNA(joints, bones, boosters, [])
+        Creature(updatable, dna, (100, 150))
 
 
     bananaspawner = BananaSpawner(updatable, drawable)

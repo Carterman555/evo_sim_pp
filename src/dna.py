@@ -10,7 +10,7 @@ class DNA:
         self.booster_data = list(booster_data)
         self.mouth_data = list(mouth_data)
 
-    def get_copy(self):
+    def copy(self):
         copy = DNA(self.structure.vertices, self.structure.edges, self.booster_data.copy(), self.mouth_data.copy())
         return copy
 
