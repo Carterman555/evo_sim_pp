@@ -4,11 +4,14 @@ from helper import valid_part_pos
 
 class CreaturePartData:
     def __init__(self, part_type, bone_index, side, pos_on_bone, size):
-        self.part_type = part_type
+        self.type = part_type
         self.bone_index = bone_index
         self.side = side
         self.pos_on_bone = pos_on_bone
         self.size = size
+
+    def __str__(self):
+        return f"CreaturePartData(type={self.type}, bone={self.bone_index}, side={self.side}, pos={self.pos_on_bone}, size={self.size})"
 
 class CreaturePart(pygame.sprite.Sprite):
     def __init__(self, creature, data, *groups):

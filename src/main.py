@@ -35,10 +35,15 @@ def main():
     dna = DNA(joints, bones, booster_data, mouth_data)
     # Creature(updatable, dna, (100, 100))
 
-    for y in range(0,4):
-        for x in range(0,4):
+    rows = 1
+    columns = 2
+    for y in range(0,rows):
+        for x in range(0,columns):
             Creature(updatable, dna, (100 + 100*x, 100 + 100*y))
-            dna = mutate_dna(dna)
+
+            last_creature = y == rows-1 and x == columns-1
+            if not last_creature:
+                dna = mutate_dna(dna)
 
 
     bananaspawner = BananaSpawner(updatable, drawable)

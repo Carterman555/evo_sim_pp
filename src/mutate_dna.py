@@ -13,48 +13,106 @@ def mutate_dna(dna: DNA) -> DNA:
 
     mutated_dna = dna.get_copy()
 
-    for i in range(len(mutated_dna.structure.vertices)):
-        if MOVE_JOINT_PROB * TEST_PROB_MULT > nr.rand():
-            move_joint(mutated_dna, i)
+    remove_bone(mutated_dna)
+
+    # for i in range(len(mutated_dna.structure.vertices)):
+    #     if MOVE_JOINT_PROB * TEST_PROB_MULT > nr.rand():
+    #         move_joint(mutated_dna, i)
 
 
-    if ADD_JOINT_PROB * TEST_PROB_MULT > nr.rand():
-        add_joint(mutated_dna)
-        print('add joint')
+    # if ADD_JOINT_PROB * TEST_PROB_MULT > nr.rand():
+    #     add_joint(mutated_dna)
 
 
-    if ADD_BONE_PROB * TEST_PROB_MULT > nr.rand():
-        add_bone(mutated_dna)
+    # if ADD_BONE_PROB * TEST_PROB_MULT > nr.rand():
+    #     add_bone(mutated_dna)
 
 
-    if REMOVE_BONE_PROB * TEST_PROB_MULT > nr.rand():
-        remove_bone(mutated_dna)
+    # if REMOVE_BONE_PROB * TEST_PROB_MULT > nr.rand():
+    #     remove_bone(mutated_dna)
 
     
-    parts_data = all_part_data(mutated_dna)
-    for part_data in parts_data:
-        if MOVE_PART_PROB * TEST_PROB_MULT > nr.rand():
-            move_part(mutated_dna, part_data)
-        if RESIZE_PART_PROB * TEST_PROB_MULT > nr.rand():
-            resize_part(mutated_dna, part_data)
+    # parts_data = all_part_data(mutated_dna)
+    # for part_data in parts_data:
+    #     if MOVE_PART_PROB * TEST_PROB_MULT > nr.rand():
+    #         move_part(mutated_dna, part_data)
+    #     if RESIZE_PART_PROB * TEST_PROB_MULT > nr.rand():
+    #         resize_part(mutated_dna, part_data)
 
 
-    if ADD_PART_PROB * TEST_PROB_MULT > nr.rand():
-        add_part(mutated_dna)
+    # if ADD_PART_PROB * TEST_PROB_MULT > nr.rand():
+    #     add_part(mutated_dna)
 
 
-    parts_amount = len(all_part_data(mutated_dna))
-    if parts_amount > 0 and REMOVE_PART_PROB * TEST_PROB_MULT > nr.rand():
-        remove_part(mutated_dna)
+    # parts_amount = len(all_part_data(mutated_dna))
+    # if parts_amount > 0 and REMOVE_PART_PROB * TEST_PROB_MULT > nr.rand():
+    #     remove_rand_part(mutated_dna)
 
 
     mutated_dna.structure.normalize_vertices()
     return mutated_dna
 
 
-def move_joint(dna: DNA, index: int):
+def move_joint(dna: DNA, joint_index: int):
+
+    connected_bone_indices = np.where(dna.structure.edges == joint_index)[0].tolist()
+    og_bone_lengths = [(i, dna.get_bone_vector(i).magnitude()) for i in connected_bone_indices]
+
+    # move the joint
     move_vector = pygame.Vector2(nr.randn()*AVG_JOINT_MOVE_AMOUNT, nr.randn()*AVG_JOINT_MOVE_AMOUNT)
-    dna.structure.vertices[index] = np.array(dna.structure.vertices[index] + move_vector)
+    dna.structure.vertices[joint_index] = np.array(dna.structure.vertices[joint_index] + move_vector)
+
+    # move and resize parts if needed
+    for part_data in all_part_data(dna):
+        if part_data.bone_index in connected_bone_indices:
+
+            og_length = next((length_tup[1] for length_tup in og_bone_lengths if length_tup[0] == part_data.bone_index), None)
+            new_length = dna.get_bone_vector(part_data.bone_index).magnitude()
+            bone_length_change = new_length - og_length
+
+            # handle the logic different whether moving the first or second joint because parts are positioned
+            # pos_on_bone distance away from the first joint and not from the second
+
+            # If the first joint was moved, change pos_on_bone for all parts on that bone. 
+            moved_first_joint = dna.structure.edges[part_data.bone_index][0] == joint_index
+            if moved_first_joint:
+                part_data.pos_on_bone += bone_length_change
+
+                # If bone shrunk, and there is a part near the joint, shrink the part.
+                distance_from_joint = part_data.pos_on_bone
+                if distance_from_joint < part_data.size/2:
+
+                    og_pos = part_data.pos_on_bone - bone_length_change
+                    og_right_side = og_pos + part_data.size/2
+                    new_right_side = og_right_side + bone_length_change
+
+                    part_data.size = new_right_side
+                    part_data.pos_on_bone = part_data.size/2
+
+                    # if bone shrunk enough to leave no room for part, remove it
+                    if part_data.size <= 0:
+                        remove_part(dna, part_data)
+
+            else:
+                new_distance_from_joint = new_length - part_data.pos_on_bone
+                if new_distance_from_joint < part_data.size/2:
+
+                    og_distance_from_joint = og_length - part_data.pos_on_bone
+                    og_left_side = og_distance_from_joint + part_data.size/2 # distance between left side of part and moved joint
+                    new_left_side = og_left_side + bone_length_change
+
+                    part_data.size = new_left_side
+
+                    distance = new_length - new_left_side # distance between left side of part and first joint
+                    part_data.pos_on_bone = distance + part_data.size/2
+
+                    # if bone shrunk enough to leave no room for part, remove it
+                    if part_data.size <= 0:
+                        remove_part(dna, part_data)
+
+                    
+
+
 
 
 def add_joint(dna: DNA):
@@ -100,6 +158,15 @@ def remove_bone(dna: DNA):
         removed_bone = dna.structure.try_remove_edge(bone_index)
         if removed_bone:
             break
+
+
+    if removed_bone:
+        # delete parts on removed bone and adjust bone indices
+        for part_data in all_part_data(dna):
+            if part_data.bone_index == bone_index:
+                remove_part(dna, part_data)
+            elif part_data.bone_index > bone_index:
+                part_data.bone_index -= 1
 
 
 def move_part(dna: DNA, part_data: CreaturePartData):
@@ -177,7 +244,7 @@ def add_part(dna: DNA):
         dna.mouth_data.append(part_data)
 
         
-def remove_part(dna: DNA):
+def remove_rand_part(dna: DNA):
 
     booster_data = [(PartType.BOOSTER, i) for i in range(len(dna.booster_data))]
     mouth_data = [(PartType.MOUTH, i) for i in range(len(dna.mouth_data))]
@@ -190,6 +257,13 @@ def remove_part(dna: DNA):
         dna.booster_data.pop(index)
     elif part_type == PartType.MOUTH:
         dna.mouth_data.pop(index)
+
+
+def remove_part(dna: DNA, part_data: CreaturePartData):
+    if part_data.type == PartType.BOOSTER:
+        dna.booster_data.pop(dna.booster_data.index(part_data))
+    elif part_data.type == PartType.MOUTH:
+        dna.mouth_data.pop(dna.mouth_data.index(part_data))
 
 
 def overlapping_parts(dna: DNA, part_data: CreaturePartData):
@@ -208,27 +282,4 @@ def overlapping_parts(dna: DNA, part_data: CreaturePartData):
 
 
 def all_part_data(dna: DNA) -> list[CreaturePartData]:
-    return np.append(dna.booster_data, [dna.mouth_data])
-
-# def add_joint_on_bone(dna):
-#     # choose a random bone
-#     bone_index = random.randint(0, len(dna.bones))
-
-#     # get a random point on that bone, and place a joint there
-#     bone_vector = dna.get_bone_vector(bone_index)
-#     rand = (random.rand() * 0.8) + 0.1 # random number between 0.1 and 0.9
-#     pos_on_bone = rand * bone_vector.magnitude()
-
-#     bone_positions = dna.get_bone_pos(bone_index)
-
-#     new_joint_pos = bone_positions[0] - np.array(bone_vector.normalize()*pos_on_bone)
-#     dna.joints = np.append(dna.joints, [new_joint_pos], axis=0)
-
-#     # there are 2 joints connected by the choosen bone
-#     # create new bones connecting each of these 2 joints to the new joint
-#     new_bone1 = (dna.bones[bone_index][0], len(dna.joints)-1)
-#     new_bone2 = (dna.bones[bone_index][1], len(dna.joints)-1)
-#     dna.bones = np.append(dna.bones, [new_bone1, new_bone2], axis=0)
-
-#     # delete the choosen bone
-#     dna.bones = np.delete(dna.bones, [bone_index], axis=0)
+    return dna.booster_data + dna.mouth_data

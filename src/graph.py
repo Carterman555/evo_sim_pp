@@ -128,7 +128,6 @@ class Graph:
     def check_edges_sorted(self):
         if not np.all(self.edges[:, 0] <= self.edges[:, 1]):
             raise Exception(f"Error: Found unsorted edges in {self}")
-        
 
     def get_edge_positions(self):
         edge_positions = [(self.vertices[pos1].copy(), self.vertices[pos2].copy()) for (pos1, pos2) in self.edges]
