@@ -11,40 +11,31 @@ from bananaspawner import BananaSpawner
 
 from constants import *
 from enums import *
-
+from settings import Settings
+from zoomer import Zoomer
 
 def main():
     
     pygame.init()
 
     screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
+    Zoomer.screen = screen
 
     clock = pygame.time.Clock()
 
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
 
-    for x in range(10):
-        joints = [[0, 0], [75, 0], [50, 50], [0, 50]]
-        bones = [(0,1), (1,2), (2,3), (3,0)]
-        booster_data = [CreaturePartData(PartType.BOOSTER, bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=50,size=20),
-                        CreaturePartData(PartType.BOOSTER, bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=20,size=20)]
-        mouth_data = [CreaturePartData(PartType.MOUTH, bone_index=2,side=BoneSide.BOTTOM,pos_on_bone=25,size=20)]
+    joints = [[0, 0], [75, 0], [50, 50], [0, 50]]
+    bones = [(0,1), (1,2), (2,3), (3,0)]
+    # booster_data = [CreaturePartData(PartType.BOOSTER,0,BoneSide.BOTTOM,30,30)]
+    booster_data = []
+    mouth_data = []
 
-        dna = DNA(joints, bones, booster_data, mouth_data)
+    dna = DNA(joints, bones, booster_data, mouth_data)
+    creature = Creature(updatable, dna, (SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
 
-        rows = 20
-        columns = 20
-        for y in range(0,rows):
-            for x in range(0,columns):
-                Creature(updatable, dna, (100 + 150*x, 300 + 100*y))
-
-                last_creature = y == rows-1 and x == columns-1
-                if not last_creature:
-                    dna = mutate_dna(dna)
-
-        Creature(updatable, dna, (100, 150))
-
+    creature.reproduce()
 
     bananaspawner = BananaSpawner(updatable, drawable)
 
@@ -59,6 +50,17 @@ def main():
                     print(f"FPS: {clock.get_fps():.2f}")
                 if event.key == pygame.K_r:
                     list(Creature._instances)[0].reproduce()
+                if event.key == pygame.K_e:
+                    Settings.toggle_energy()
+
+            if event.type == pygame.MOUSEWHEEL:
+                if event.y > 0:
+                    Zoomer.zoom_in()
+                elif event.y < 0:
+                    Zoomer.zoom_out()
+
+
+        Zoomer.handle_panning()
 
         # Updates
         updatable.update()

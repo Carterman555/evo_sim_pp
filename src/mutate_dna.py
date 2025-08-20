@@ -178,8 +178,7 @@ def move_part(dna: DNA, part_data: CreaturePartData, desired_move_amount):
     max_pos_on_bone = np.floor(bone_length - part_data.size/2) - PART_PADDING
 
     if min_pos_on_bone > max_pos_on_bone:
-        print(f"Warning: Trying to move bone and min pos on bone is greater than max. Part should not exist on a bone this small. {dna.structure}{part_data}")
-        return
+        raise Warning(f"Trying to move bone and min pos on bone is greater than max. Part should not exist on a bone this small. {dna.structure}{part_data}")
 
     original_pos = part_data.pos_on_bone
 
