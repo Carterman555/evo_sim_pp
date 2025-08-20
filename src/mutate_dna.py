@@ -15,7 +15,8 @@ def mutate_dna(dna: DNA) -> DNA:
 
     for i in range(len(mutated_dna.structure.vertices)):
         if MOVE_JOINT_PROB * TEST_PROB_MULT > nr.rand():
-            move_joint(mutated_dna, i)
+            move_vector = round(pygame.Vector2(nr.randn()*AVG_JOINT_MOVE_AMOUNT, nr.randn()*AVG_JOINT_MOVE_AMOUNT))
+            move_joint(mutated_dna, i, move_vector)
 
 
     if ADD_JOINT_PROB * TEST_PROB_MULT > nr.rand():
@@ -29,13 +30,15 @@ def mutate_dna(dna: DNA) -> DNA:
     if REMOVE_BONE_PROB * TEST_PROB_MULT > nr.rand():
         remove_bone(mutated_dna)
 
-    
+
     parts_data = all_part_data(mutated_dna)
     for part_data in parts_data:
         if MOVE_PART_PROB * TEST_PROB_MULT > nr.rand():
-            move_part(mutated_dna, part_data)
+            desired_move_amount = nr.randn() * AVG_PART_MOVE_AMOUNT
+            move_part(mutated_dna, part_data, desired_move_amount)
         if RESIZE_PART_PROB * TEST_PROB_MULT > nr.rand():
-            resize_part(mutated_dna, part_data)
+            desired_resize_amount = nr.randn() * AVG_PART_RESIZE_AMOUNT
+            resize_part(mutated_dna, part_data, desired_resize_amount)
 
 
     if ADD_PART_PROB * TEST_PROB_MULT > nr.rand():
@@ -46,14 +49,12 @@ def mutate_dna(dna: DNA) -> DNA:
     return mutated_dna
 
 
-def move_joint(dna: DNA, joint_index: int, move_vector = None):
+def move_joint(dna: DNA, joint_index: int, move_vector):
 
     connected_bone_indices = np.where(dna.structure.edges == joint_index)[0].tolist()
     og_bone_lengths = [(i, dna.get_bone_vector(i).magnitude()) for i in connected_bone_indices]
 
     # move the joint
-    if move_vector == None:
-        move_vector = round(pygame.Vector2(nr.randn()*AVG_JOINT_MOVE_AMOUNT, nr.randn()*AVG_JOINT_MOVE_AMOUNT))
     dna.structure.vertices[joint_index] = np.array(dna.structure.vertices[joint_index] + move_vector)
 
     # move and resize parts if needed
@@ -76,12 +77,13 @@ def move_joint(dna: DNA, joint_index: int, move_vector = None):
                 # If bone shrunk, and there is a part near the joint, shrink the part.
                 distance_from_joint = part_data.pos_on_bone
                 if distance_from_joint < part_data.size/2 + PART_PADDING:
+
                     og_pos = part_data.pos_on_bone - bone_length_change
                     og_right_side = og_pos + part_data.size/2
                     new_right_side = og_right_side + bone_length_change
 
                     part_data.size = np.floor(new_right_side) - PART_PADDING
-                    part_data.pos_on_bone = np.ceil(part_data.size/2 + PART_PADDING/2)
+                    part_data.pos_on_bone = np.ceil(part_data.size/2 + PART_PADDING)
 
                     # if bone shrunk enough to leave no room for part, remove it
                     if part_data.size <= MIN_PART_SIZE:
@@ -91,14 +93,16 @@ def move_joint(dna: DNA, joint_index: int, move_vector = None):
             else:
                 new_distance_from_joint = new_length - part_data.pos_on_bone
                 if new_distance_from_joint < part_data.size/2 + PART_PADDING:
+
                     og_distance_from_joint = og_length - part_data.pos_on_bone
                     og_left_side = og_distance_from_joint + part_data.size/2 # distance between left side of part and moved joint
                     new_left_side = og_left_side + bone_length_change
 
                     part_data.size = np.floor(new_left_side) - PART_PADDING
 
-                    distance = new_length - new_left_side # distance between left side of part and first joint
-                    part_data.pos_on_bone = np.floor(distance + part_data.size/2 - PART_PADDING/2)
+                    distance = (new_length - new_left_side) # distance between left side of part and first joint
+
+                    part_data.pos_on_bone = np.floor(distance + part_data.size/2)
 
                     # if bone shrunk enough to leave no room for part, remove it
                     if part_data.size <= MIN_PART_SIZE:
@@ -108,6 +112,7 @@ def move_joint(dna: DNA, joint_index: int, move_vector = None):
             if not valid_part_pos(dna, part_data.bone_index, part_data.pos_on_bone, part_data.size):
                 raise Exception("Trying to adjust part from joint movement, but part is in invalid pos.")
 
+        
                     
 
 def add_joint(dna: DNA):
@@ -165,7 +170,7 @@ def remove_bone(dna: DNA):
                 part_data.bone_index -= 1
 
 
-def move_part(dna: DNA, part_data: CreaturePartData, desired_move_amount = None):
+def move_part(dna: DNA, part_data: CreaturePartData, desired_move_amount):
 
     min_pos_on_bone = np.ceil(part_data.size/2) + PART_PADDING
 
@@ -178,8 +183,6 @@ def move_part(dna: DNA, part_data: CreaturePartData, desired_move_amount = None)
 
     original_pos = part_data.pos_on_bone
 
-    if desired_move_amount == None:
-        desired_move_amount = nr.randn() * AVG_PART_MOVE_AMOUNT
     part_data.pos_on_bone += desired_move_amount
     part_data.pos_on_bone = round(part_data.pos_on_bone)
     part_data.pos_on_bone = np.clip(part_data.pos_on_bone, min_pos_on_bone, max_pos_on_bone)
@@ -191,7 +194,7 @@ def move_part(dna: DNA, part_data: CreaturePartData, desired_move_amount = None)
         raise Exception("Trying to move part to invalid pos.")
 
 
-def resize_part(dna: DNA, part_data: CreaturePartData):
+def resize_part(dna: DNA, part_data: CreaturePartData, desired_resize_amount):
 
     bone_length = dna.get_bone_vector(part_data.bone_index).magnitude()
 
@@ -204,13 +207,12 @@ def resize_part(dna: DNA, part_data: CreaturePartData):
     max_size = np.floor((shorter_distance-PART_PADDING) * 2)
 
     original_size = part_data.size
-
-    desired_resize_amount = nr.randn() * AVG_PART_RESIZE_AMOUNT
+    
     part_data.size += desired_resize_amount
     part_data.size = np.floor(part_data.size)
     part_data.size = np.min((part_data.size, max_size))
 
-    if part_data.size <= 0:
+    if part_data.size <= MIN_PART_SIZE:
         remove_part(dna, part_data)
         return
 
@@ -237,10 +239,10 @@ def add_part(dna: DNA):
         bone_index = nr.randint(len(dna.structure.edges))
         bone_side = nr.choice(BoneSide)
 
-        min_pos_on_bone = np.ceil(MIN_PART_SIZE/2)
+        min_pos_on_bone = np.ceil(MIN_PART_SIZE/2) + PART_PADDING
 
         bone_length = dna.get_bone_vector(bone_index).magnitude()
-        max_pos_on_bone = np.floor(bone_length - MIN_PART_SIZE/2)
+        max_pos_on_bone = np.floor(bone_length - MIN_PART_SIZE/2) - PART_PADDING
 
         bone_too_small = max_pos_on_bone - min_pos_on_bone < MIN_PART_SIZE
         if bone_too_small:

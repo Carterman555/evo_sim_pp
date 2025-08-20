@@ -24,7 +24,7 @@ def main():
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
 
-    for x in range(200):
+    for x in range(10):
         joints = [[0, 0], [75, 0], [50, 50], [0, 50]]
         bones = [(0,1), (1,2), (2,3), (3,0)]
         booster_data = [CreaturePartData(PartType.BOOSTER, bone_index=0,side=BoneSide.BOTTOM,pos_on_bone=50,size=20),
@@ -43,11 +43,6 @@ def main():
                 if not last_creature:
                     dna = mutate_dna(dna)
 
-        # joints = [[0, 0], [56, 67], [10, 66]]
-        # bones = [[1, 2], [0, 2]]
-        # boosters = [CreaturePartData(PartType.BOOSTER, bone_index=0, side=BoneSide.BOTTOM, pos_on_bone=37, size=18)]
-
-        # dna = DNA(joints, bones, boosters, [])
         Creature(updatable, dna, (100, 150))
 
 
