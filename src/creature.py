@@ -11,10 +11,11 @@ from settings import Settings
 from zoomer import Zoomer
 
 class Creature():
-    _instances = set()
+
+    _instances = list()
 
     def __init__(self, updatable, world_bounds: pygame.Rect, dna: DNA, pos):
-        Creature._instances.add(self)
+        Creature._instances.append(self)
 
         self.updatable = updatable
         self.world_bounds: pygame.Rect = world_bounds
@@ -166,7 +167,7 @@ class Creature():
         return offspring
 
     def die(self):
-        Creature._instances.remove(self)
+        Creature._instances.pop(Creature._instances.index(self))
 
     def draw(self):
         # offset is center of mass relative to center instead of topleft

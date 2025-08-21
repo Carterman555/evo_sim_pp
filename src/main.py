@@ -1,5 +1,6 @@
 import pygame
 from sys import exit
+import numpy as np
 
 from creature import Creature
 from banana import Banana
@@ -16,7 +17,9 @@ from settings import Settings
 from zoomer import Zoomer
 
 def main():
-    
+
+    np.random.seed(69)
+
     pygame.init()
 
     screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
@@ -41,7 +44,9 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_f:
-                    print(f"FPS: {clock.get_fps():.2f}")
+                    print(f"Creatures: {len(Creature._instances)}")
+                    print(f"Bananas: {len(Banana._instances)}")
+                    print(f"FPS: {clock.get_fps():.2f}\n")
                 if event.key == pygame.K_r:
                     Settings.show_creature_rects = not Settings.show_creature_rects
                 
@@ -89,11 +94,12 @@ def main():
         creaturespawner.update()
         bananaspawner.update()
 
-        # possible speed up - copying might use up a lot of memory
-        # copy so set doesn't change while looping when creature dies
-        creatures = Creature._instances.copy()
-        for creature in creatures:
-            creature.update()
+        # while loop so to handle when creature dies
+        creature_index = 0
+        while creature_index < len(Creature._instances):
+            Creature._instances[creature_index].update()
+            creature_index += 1
+
 
         # Draws
         if Settings.draw:

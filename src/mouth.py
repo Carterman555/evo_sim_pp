@@ -18,18 +18,19 @@ class Mouth(CreaturePart):
         creature_surf.blit(rotated_image, rotated_rect)
 
     def update(self):
-        # possible speed up - copying might use up a lot of memory
-        # copy because eating banana modifies list
-        bananas = Banana._instances.copy()
-        for banana in bananas:
+        # while loop because eating banana modifies list
+        banana_index = 0
+        while banana_index < len(Banana._instances):
             part_lpos1 = self.rect.center - ((self.data.size/2) * self.bone_vector)
             part_lpos2 = self.rect.center + ((self.data.size/2) * self.bone_vector)
 
             part_gpos1 = self.creature.global_pos(part_lpos1)
             part_gpos2 = self.creature.global_pos(part_lpos2)
 
-            if banana.rect.clipline((part_gpos1, part_gpos2)):
-                self.creature.eat(banana)
+            if Banana._instances[banana_index].rect.clipline((part_gpos1, part_gpos2)):
+                self.creature.eat(Banana._instances[banana_index])
+
+            banana_index += 1
 
     
 
