@@ -13,12 +13,19 @@ from zoomer import Zoomer
 class Creature():
     _instances = set()
 
-    def __init__(self, updatable, world_bounds, dna, pos):
+    def __init__(self, updatable, world_bounds: pygame.Rect, dna: DNA, pos):
         Creature._instances.add(self)
 
         self.updatable = updatable
         self.world_bounds: pygame.Rect = world_bounds
         self.dna: DNA = dna
+
+        # A creature must have at least one booster and mouth. They're going to die anyway, so 
+        # putting them out of their misery seems like the morally right action to take (and resource
+        # effective)
+        if len(self.dna.booster_data) == 0 or len(self.dna.mouth_data) == 0:
+            self.die()
+            return
 
         self.joints = self.dna.structure.vertices
         self.bones = self.dna.structure.edges
@@ -169,21 +176,27 @@ class Creature():
         if self.invincible:
             rotated_surf.set_alpha(100)
 
+        if Settings.show_creature_rects: Zoomer.draw_rect(rect, (0,0,0,20))
         Zoomer.draw_surf(rotated_surf, rect)
 
         # energy bar
         if Settings.show_energy:
-            energy_bar_back = pygame.Rect(rect.center, (50, 10))
+            energy_bar_width = 50
+            energy_bar_height = 10
+            energy_bar_pos = (rect.centerx - energy_bar_width/2, rect.centery - self.height)
+
+            energy_bar_back = pygame.Rect(energy_bar_pos, (energy_bar_width, energy_bar_height))
             Zoomer.draw_rect(energy_bar_back, 'black')
 
-            max_width = 46
+            max_width = energy_bar_width - 4
             width = max_width * (self.energy / self.max_energy)
 
-            energy_bar = pygame.Rect(rect.center + pygame.Vector2((2,2)), (width, 6))
+            energy_bar = pygame.Rect(energy_bar_pos + pygame.Vector2((2,2)), (width, 6))
             Zoomer.draw_rect(energy_bar, 'lightgreen')
 
+
     def draw_shapes(self):
-        if Settings.show_creature_background: self.surface.fill((0,0,0,20)) # to visualize surface
+        # self.surface.fill((0,0,0,20)) # to visualize surface
 
         # bones
         bone_positions = self.dna.structure.get_edge_positions()

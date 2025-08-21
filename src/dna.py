@@ -20,4 +20,4 @@ class DNA:
     
     def get_bone_vector(self, bone_index) -> pygame.Vector2:
         pos1, pos2 = self.structure.get_edge_pos(bone_index)
-        return np_to_v2(pos1 - pos2)
+        return np_to_v2(pos2 - pos1)

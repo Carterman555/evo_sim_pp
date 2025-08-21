@@ -1,11 +1,12 @@
 import pygame, math
 from numpy.random import randint
+from numpy.random import choice
 
 from creature import Creature
 from creaturepart import CreaturePartData
 from dna import DNA
 from graph import Graph
-from mutate_dna import add_part
+from mutate_dna import try_add_part
 
 from enums import *
 from constants import *
@@ -15,6 +16,7 @@ class CreatureSpawner:
     def __init__(self, updatable, world_bounds):
         self.updatable = updatable
         self.world_bounds = world_bounds
+
 
     def update(self):
         if len(Creature._instances) < MIN_CREATURE_AMOUNT:
@@ -38,9 +40,11 @@ class CreatureSpawner:
 
         dna.structure = Graph(joints, bones)
 
-        nparts = randint(0,5)
-        for i in range(nparts):
-            add_part(dna)
+        try_add_part(dna, choice(PartType))
+        try_add_part(dna, choice(PartType))
+
+        for i in range(randint(0,3)):
+            try_add_part(dna, choice(PartType))
             
         dna.structure.normalize_vertices()
         return dna

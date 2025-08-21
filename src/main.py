@@ -43,7 +43,7 @@ def main():
                 if event.key == pygame.K_f:
                     print(f"FPS: {clock.get_fps():.2f}")
                 if event.key == pygame.K_r:
-                    list(Creature._instances)[0].reproduce()
+                    Settings.show_creature_rects = not Settings.show_creature_rects
                 
                 if event.key == pygame.K_q:
                     Settings.draw = not Settings.draw

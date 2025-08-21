@@ -42,7 +42,7 @@ def mutate_dna(dna: DNA) -> DNA:
 
 
     if ADD_PART_PROB * TEST_PROB_MULT > nr.rand():
-        add_part(mutated_dna, MIN_PART_SIZE)
+        try_add_part(mutated_dna, nr.choice(PartType), MIN_PART_SIZE)
 
 
     mutated_dna.structure.normalize_vertices()
@@ -222,8 +222,7 @@ def resize_part(dna: DNA, part_data: CreaturePartData, desired_resize_amount):
         raise Exception("Trying to resize part, but invalid pos.")
 
 
-def add_part(dna: DNA, size = None):
-    part_type = nr.choice(PartType)
+def try_add_part(dna: DNA, part_type: PartType, size: int = None) -> bool:
 
     max_attempts = 10
     attempt = 0
@@ -233,7 +232,7 @@ def add_part(dna: DNA, size = None):
 
         attempt += 1
         if attempt >= max_attempts:
-            return
+            return False
 
         bone_index = nr.randint(len(dna.structure.edges))
         bone_side = nr.choice(BoneSide)
@@ -241,7 +240,7 @@ def add_part(dna: DNA, size = None):
         bone_length = dna.get_bone_vector(bone_index).magnitude()
 
         if size == None:
-            max_size = bone_length - PART_PADDING*2
+            max_size = np.floor(bone_length) - PART_PADDING*2
             bone_too_small = MIN_PART_SIZE >= max_size
             if bone_too_small:
                 continue
@@ -266,8 +265,11 @@ def add_part(dna: DNA, size = None):
     if part_type == PartType.MOUTH:
         dna.mouth_data.append(part_data)
 
+
     if not valid_part_pos(dna, part_data.bone_index, part_data.pos_on_bone, part_data.size):
         raise Exception("Trying to add part to invalid pos.")
+    else: 
+        return True
 
 
 def remove_part(dna: DNA, part_data: CreaturePartData):
@@ -283,7 +285,8 @@ def overlapping_parts(dna: DNA, part_data: CreaturePartData):
             continue
         
         on_same_bone = part_data.bone_index == other_part_data.bone_index
-        if on_same_bone:
+        on_same_side = part_data.side == other_part_data.side
+        if on_same_bone and on_same_side:
             distance = np.abs(part_data.pos_on_bone - other_part_data.pos_on_bone)
             min_distance = (part_data.size/2) + (other_part_data.size/2) + PART_PADDING
 

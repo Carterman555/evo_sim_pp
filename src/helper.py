@@ -26,7 +26,7 @@ def valid_part_pos(dna, bone_index, pos_on_bone, width):
     bone_positions = dna.structure.get_edge_pos(bone_index)
     bone_vector = dna.get_bone_vector(bone_index).normalize()
 
-    center = bone_positions[0] - (bone_vector * pos_on_bone)
+    center = bone_positions[0] + (bone_vector * pos_on_bone)
 
     part_pos1 = center - ((width/2) * bone_vector)
     part_pos2 = center + ((width/2) * bone_vector)
