@@ -1,8 +1,9 @@
-import pygame, os, weakref
+import pygame, os
 from constants import IMAGE_PATH
+from zoomer import Zoomer
 
 class Banana(pygame.sprite.Sprite):
-    _instances = weakref.WeakSet()
+    _instances = set()
 
     def __init__(self, pos):
         super().__init__()
@@ -16,3 +17,9 @@ class Banana(pygame.sprite.Sprite):
 
     def update(self):
         pass
+
+    def draw(self):
+        Zoomer.draw_surf(self.image, self.rect)
+
+    def kill(self):
+        Banana._instances.remove(self)

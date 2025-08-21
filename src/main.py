@@ -2,11 +2,12 @@ import pygame
 from sys import exit
 
 from creature import Creature
+from banana import Banana
 from creaturepart import CreaturePartData
 from dna import DNA
 from mouth import Mouth
-from mutate_dna import mutate_dna
 
+from creaturespawner import CreatureSpawner
 from bananaspawner import BananaSpawner
 
 from constants import *
@@ -24,20 +25,13 @@ def main():
     clock = pygame.time.Clock()
 
     updatable = pygame.sprite.Group()
-    drawable = pygame.sprite.Group()
 
-    joints = [[0, 0], [75, 0], [50, 50], [0, 50]]
-    bones = [(0,1), (1,2), (2,3), (3,0)]
-    # booster_data = [CreaturePartData(PartType.BOOSTER,0,BoneSide.BOTTOM,30,30)]
-    booster_data = []
-    mouth_data = []
+    screen_centerx = SCREEN_WIDTH/2
+    screen_centery = SCREEN_HEIGHT/2
+    world_bounds = pygame.Rect((-WORLD_WIDTH/2 + screen_centerx,-WORLD_HEIGHT/2 + screen_centery), (WORLD_WIDTH, WORLD_HEIGHT))
 
-    dna = DNA(joints, bones, booster_data, mouth_data)
-    creature = Creature(updatable, dna, (SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
-
-    creature.reproduce()
-
-    bananaspawner = BananaSpawner(updatable, drawable)
+    creaturespawner = CreatureSpawner(updatable, world_bounds)
+    bananaspawner = BananaSpawner(updatable, world_bounds)
 
     while True:
         for event in pygame.event.get():
@@ -50,8 +44,36 @@ def main():
                     print(f"FPS: {clock.get_fps():.2f}")
                 if event.key == pygame.K_r:
                     list(Creature._instances)[0].reproduce()
+                
+                if event.key == pygame.K_q:
+                    Settings.draw = not Settings.draw
+                    screen.fill("black")
+
+                if Settings.draw:
+                    if event.key == pygame.K_0:
+                        Settings.frame_rate = 0
+                    if event.key == pygame.K_1:
+                        Settings.frame_rate = 10
+                    if event.key == pygame.K_2:
+                        Settings.frame_rate = 20
+                    if event.key == pygame.K_3:
+                        Settings.frame_rate = 30
+                    if event.key == pygame.K_4:
+                        Settings.frame_rate = 40
+                    if event.key == pygame.K_5:
+                        Settings.frame_rate = 50
+                    if event.key == pygame.K_6:
+                        Settings.frame_rate = 60
+                    if event.key == pygame.K_7:
+                        Settings.frame_rate = 70
+                    if event.key == pygame.K_8:
+                        Settings.frame_rate = 80
+                    if event.key == pygame.K_9:
+                        Settings.frame_rate = 10000
+                    
+
                 if event.key == pygame.K_e:
-                    Settings.toggle_energy()
+                    Settings.show_energy = not Settings.show_energy
 
             if event.type == pygame.MOUSEWHEEL:
                 if event.y > 0:
@@ -59,29 +81,36 @@ def main():
                 elif event.y < 0:
                     Zoomer.zoom_out()
 
-
         Zoomer.handle_panning()
 
         # Updates
         updatable.update()
 
-        # so set doesn't change while looping when creature dies 
+        creaturespawner.update()
+        bananaspawner.update()
+
+        # possible speed up - copying might use up a lot of memory
+        # copy so set doesn't change while looping when creature dies
         creatures = Creature._instances.copy()
         for creature in creatures:
             creature.update()
 
-        bananaspawner.update()
-
         # Draws
-        screen.fill("#85B889")
+        if Settings.draw:
+            screen.fill("#738B75")
+            Zoomer.draw_rect(world_bounds, '#85B889')
 
-        drawable.draw(screen)
+            for creature in Creature._instances:
+                creature.draw()
 
-        for creature in Creature._instances:
-            creature.draw(screen)
+            for banana in Banana._instances:
+                banana.draw()
+
         
         pygame.display.update()
-        clock.tick(30)
+
+        frame_rate = Settings.frame_rate if Settings.draw else 10000
+        clock.tick(frame_rate)
 
         
 

@@ -7,9 +7,9 @@ class Graph:
         self.edges = np.array([sorted(e) for e in edges]) # edges should always remain sorted
 
     def __str__(self):
-        str = "\nGraph\n"
+        str = "Graph\n"
         str += f'  Vertices: {self.vertices.tolist()}\n'
-        str += f'  Edges: {self.edges.tolist()}\n'
+        str += f'  Edges: {self.edges.tolist()}'
         return str
 
     def check_edges_sorted(self):

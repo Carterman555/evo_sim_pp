@@ -42,7 +42,7 @@ def mutate_dna(dna: DNA) -> DNA:
 
 
     if ADD_PART_PROB * TEST_PROB_MULT > nr.rand():
-        add_part(mutated_dna)
+        add_part(mutated_dna, MIN_PART_SIZE)
 
 
     mutated_dna.structure.normalize_vertices()
@@ -222,7 +222,7 @@ def resize_part(dna: DNA, part_data: CreaturePartData, desired_resize_amount):
         raise Exception("Trying to resize part, but invalid pos.")
 
 
-def add_part(dna: DNA):
+def add_part(dna: DNA, size = None):
     part_type = nr.choice(PartType)
 
     max_attempts = 10
@@ -238,18 +238,26 @@ def add_part(dna: DNA):
         bone_index = nr.randint(len(dna.structure.edges))
         bone_side = nr.choice(BoneSide)
 
-        min_pos_on_bone = np.ceil(MIN_PART_SIZE/2) + PART_PADDING
-
         bone_length = dna.get_bone_vector(bone_index).magnitude()
-        max_pos_on_bone = np.floor(bone_length - MIN_PART_SIZE/2) - PART_PADDING
 
-        bone_too_small = max_pos_on_bone - min_pos_on_bone < MIN_PART_SIZE
+        if size == None:
+            max_size = bone_length - PART_PADDING*2
+            bone_too_small = MIN_PART_SIZE >= max_size
+            if bone_too_small:
+                continue
+
+            size = nr.randint(MIN_PART_SIZE, max_size)
+
+        min_pos_on_bone = np.ceil(size/2) + PART_PADDING
+        max_pos_on_bone = np.floor(bone_length - size/2) - PART_PADDING
+
+        bone_too_small = max_pos_on_bone - min_pos_on_bone < size
         if bone_too_small:
             continue
 
         pos_on_bone = nr.randint(min_pos_on_bone, max_pos_on_bone)
 
-        part_data = CreaturePartData(part_type, bone_index, bone_side, pos_on_bone, MIN_PART_SIZE)
+        part_data = CreaturePartData(part_type, bone_index, bone_side, pos_on_bone, size)
 
         overlapping = overlapping_parts(dna, part_data)
 

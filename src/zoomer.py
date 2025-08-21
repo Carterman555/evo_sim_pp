@@ -98,6 +98,8 @@ class Zoomer:
         
         surface = pygame.transform.scale_by(surface, Zoomer.zoom)
 
+        rect = rect.copy()
+
         rect.x = int(rect.x*Zoomer.zoom + Zoomer.camera_x)
         rect.y = int(rect.y*Zoomer.zoom + Zoomer.camera_y)
 
@@ -109,6 +111,8 @@ class Zoomer:
         if Zoomer.screen == None:
             raise Exception("Trying to draw with Zoomer, but screen is not set.")
         
+        rect = rect.copy()
+
         rect = rect.scale_by(Zoomer.zoom)
 
         rect.center = (int(rect.centerx*Zoomer.zoom + Zoomer.camera_x),

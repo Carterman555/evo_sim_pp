@@ -13,10 +13,11 @@ from zoomer import Zoomer
 class Creature():
     _instances = set()
 
-    def __init__(self, updatable, dna, pos):
+    def __init__(self, updatable, world_bounds, dna, pos):
         Creature._instances.add(self)
 
         self.updatable = updatable
+        self.world_bounds: pygame.Rect = world_bounds
         self.dna: DNA = dna
 
         self.joints = self.dna.structure.vertices
@@ -93,9 +94,9 @@ class Creature():
         for booster in self.boosters:
             energy_drain += (booster.data.size / 10) * BOOSTER_ENERGY_USAGE
 
-        self.energy -= energy_drain/100
+        self.energy -= energy_drain
         if self.energy <= 0:
-            Creature._instances.remove(self)
+            self.die()
 
         if self.invincible:
             self.invincibilty_timer -= 1
@@ -130,6 +131,19 @@ class Creature():
         
         self.angle = self.angle % 360
 
+        in_bounds = self.world_bounds.collidepoint(self.pos)
+        if not in_bounds:
+            self.die()
+
+
+    def eat(self, banana):
+        banana.kill()
+
+        self.energy += BANANA_ENERGY_GAIN
+        self.energy = min(self.energy, self.max_energy)
+
+        if REP_PROB > np.random.rand() and self.energy > self.rep_energy_cost:
+            self.reproduce()
 
     def reproduce(self):
 
@@ -138,14 +152,16 @@ class Creature():
         
         offset = (0,100)
         mutated_dna = mutate_dna(self.dna)
-        offspring = Creature(self.updatable, mutated_dna, self.pos + offset)
+        offspring = Creature(self.updatable, self.world_bounds, mutated_dna, self.pos + offset)
 
         self.energy -= self.rep_energy_cost
 
         return offspring
 
+    def die(self):
+        Creature._instances.remove(self)
 
-    def draw(self, screen):
+    def draw(self):
         # offset is center of mass relative to center instead of topleft
         offset = pygame.Vector2(self.width/2, self.height/2) - self.center_of_mass 
         rotated_surf, rect = rotate(self.surface, self.angle, self.pos, offset)
@@ -153,7 +169,7 @@ class Creature():
         if self.invincible:
             rotated_surf.set_alpha(100)
 
-        Zoomer.draw_surf(rotated_surf, rect.copy()) # copy rect because energy bar uses rect pos
+        Zoomer.draw_surf(rotated_surf, rect)
 
         # energy bar
         if Settings.show_energy:

@@ -3,32 +3,36 @@ from numpy.random import randint
 
 from banana import Banana
 from constants import *
+from settings import Settings
 
 class BananaSpawner:
-    def __init__(self, updatable, drawable):
+    def __init__(self, updatable, world_bounds):
 
         self.updatable = updatable
-        self.drawable = drawable
+        self.world_bounds: pygame.Rect = world_bounds
 
         # banana = Banana((650,450))
         # self.updatable.add(banana)
-        # self.drawable.add(banana)
 
         self.spawn_timer = BANANA_SPAWN_COOLDOWN
 
     def update(self):
 
+        if not Settings.spawn_bananas:
+            return
+
         self.spawn_timer -= 1
-        if self.spawn_timer <= 0:
+        if self.spawn_timer <= 0 and len(Banana._instances) < MAX_BANANAS:
             self.spawn_timer = BANANA_SPAWN_COOLDOWN
 
-            # self.spawn_banana()
+            self.spawn_banana()
 
     def spawn_banana(self):
         padding = 40
 
-        pos = pygame.Vector2(randint(padding, SCREEN_WIDTH-padding), randint(padding, SCREEN_HEIGHT-padding))
-        banana = Banana(pos)
+        x = randint(self.world_bounds.left + padding, self.world_bounds.right - padding)
+        y = randint(self.world_bounds.top + padding, self.world_bounds.bottom - padding)
+
+        banana = Banana(pygame.Vector2(x,y))
 
         self.updatable.add(banana)
-        self.drawable.add(banana)
