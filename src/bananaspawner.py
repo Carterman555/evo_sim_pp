@@ -6,13 +6,11 @@ from constants import *
 from settings import Settings
 
 class BananaSpawner:
-    def __init__(self, updatable, world_bounds):
+    def __init__(self, world_bounds):
 
-        self.updatable = updatable
         self.world_bounds: pygame.Rect = world_bounds
 
         # banana = Banana((650,450))
-        # self.updatable.add(banana)
 
         self.spawn_timer = BANANA_SPAWN_COOLDOWN
 
@@ -33,6 +31,4 @@ class BananaSpawner:
         x = randint(self.world_bounds.left + padding, self.world_bounds.right - padding)
         y = randint(self.world_bounds.top + padding, self.world_bounds.bottom - padding)
 
-        banana = Banana(pygame.Vector2(x,y))
-
-        self.updatable.add(banana)
+        Banana(pygame.Vector2(x,y))

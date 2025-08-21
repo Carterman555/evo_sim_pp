@@ -11,17 +11,8 @@ from constants import *
 
 class CreatureSpawner:
 
-    def __init__(self, updatable, world_bounds):
-        self.updatable = updatable
+    def __init__(self, world_bounds):
         self.world_bounds = world_bounds
-
-        padding = 100
-
-        x = random.randint(self.world_bounds.left + padding, self.world_bounds.right - padding)
-        y = random.randint(self.world_bounds.top + padding, self.world_bounds.bottom - padding)
-
-        dna = self.starting_dna()
-        creature = Creature(self.updatable, self.world_bounds, dna, (x, y))
 
 
     def update(self):
@@ -32,7 +23,7 @@ class CreatureSpawner:
             y = random.randint(self.world_bounds.top + padding, self.world_bounds.bottom - padding)
 
             dna = self.starting_dna()
-            creature = Creature(self.updatable, self.world_bounds, dna, (x, y))
+            creature = Creature(self.world_bounds, dna, (x, y))
 
 
     def starting_dna(self) -> DNA:

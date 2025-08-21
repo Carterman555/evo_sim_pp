@@ -12,7 +12,7 @@ from enums import *
 
 def main():
 
-    max_frames = 1000
+    max_frames = 10000
     frame = 0
 
     seed = 69
@@ -25,14 +25,12 @@ def main():
 
     clock = pygame.time.Clock()
 
-    updatable = pygame.sprite.Group()
-
     screen_centerx = SCREEN_WIDTH/2
     screen_centery = SCREEN_HEIGHT/2
     world_bounds = pygame.Rect((-WORLD_WIDTH/2 + screen_centerx,-WORLD_HEIGHT/2 + screen_centery), (WORLD_WIDTH, WORLD_HEIGHT))
 
-    creaturespawner = CreatureSpawner(updatable, world_bounds)
-    bananaspawner = BananaSpawner(updatable, world_bounds)
+    creaturespawner = CreatureSpawner(world_bounds)
+    bananaspawner = BananaSpawner(world_bounds)
 
     while True:
         for event in pygame.event.get():
@@ -41,8 +39,6 @@ def main():
                 exit()
 
         # Updates
-        updatable.update()
-
         creaturespawner.update()
         bananaspawner.update()
 

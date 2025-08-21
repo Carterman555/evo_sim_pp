@@ -15,9 +15,6 @@ class Banana(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect(center=pos)
 
-    def update(self):
-        pass
-
     def draw(self):
         Zoomer.draw_surf(self.image, self.rect)
 

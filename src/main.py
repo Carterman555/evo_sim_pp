@@ -27,14 +27,12 @@ def main():
 
     clock = pygame.time.Clock()
 
-    updatable = pygame.sprite.Group()
-
     screen_centerx = SCREEN_WIDTH/2
     screen_centery = SCREEN_HEIGHT/2
     world_bounds = pygame.Rect((-WORLD_WIDTH/2 + screen_centerx,-WORLD_HEIGHT/2 + screen_centery), (WORLD_WIDTH, WORLD_HEIGHT))
 
-    creaturespawner = CreatureSpawner(updatable, world_bounds)
-    bananaspawner = BananaSpawner(updatable, world_bounds)
+    creaturespawner = CreatureSpawner(world_bounds)
+    bananaspawner = BananaSpawner(world_bounds)
 
     while True:
         for event in pygame.event.get():
@@ -44,8 +42,6 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_f:
-                    print(f"Creatures: {len(Creature._instances)}")
-                    print(f"Bananas: {len(Banana._instances)}")
                     print(f"FPS: {clock.get_fps():.2f}\n")
                 if event.key == pygame.K_r:
                     Settings.show_creature_rects = not Settings.show_creature_rects
@@ -89,8 +85,6 @@ def main():
         Zoomer.handle_panning()
 
         # Updates
-        updatable.update()
-
         creaturespawner.update()
         bananaspawner.update()
 

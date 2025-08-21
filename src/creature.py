@@ -14,10 +14,9 @@ class Creature():
 
     _instances = list()
 
-    def __init__(self, updatable, world_bounds: pygame.Rect, dna: DNA, pos):
+    def __init__(self, world_bounds: pygame.Rect, dna: DNA, pos):
         Creature._instances.append(self)
 
-        self.updatable = updatable
         self.world_bounds: pygame.Rect = world_bounds
         self.dna: DNA = dna
 
@@ -60,7 +59,7 @@ class Creature():
 
         self.mouths: list[Mouth] = []
         for mouth_data in self.dna.mouth_data:
-            self.mouths.append(Mouth(self, mouth_data, updatable))
+            self.mouths.append(Mouth(self, mouth_data))
         
         self.max_energy = self.mass * MAX_ENERGY_MULT
         self.energy = self.max_energy
@@ -71,6 +70,8 @@ class Creature():
 
         self.surface = pygame.Surface((self.width + padding, self.height + padding), pygame.SRCALPHA)
         self.draw_shapes()
+
+        self.rect = self.surface.get_rect(center = self.pos)
 
     def calculate_mass(self) -> float:
         mass = 0
@@ -97,6 +98,9 @@ class Creature():
         
         if Settings.physics_enabled:
             self.handle_physics()
+
+        for mouth in self.mouths:
+            mouth.update()
 
         energy_drain = BASE_ENERGY_DRAIN * self.mass
         for booster in self.boosters:
@@ -160,7 +164,7 @@ class Creature():
         
         offset = (0,100)
         mutated_dna = mutate_dna(self.dna)
-        offspring = Creature(self.updatable, self.world_bounds, mutated_dna, self.pos + offset)
+        offspring = Creature(self.world_bounds, mutated_dna, self.pos + offset)
 
         self.energy -= self.rep_energy_cost
 
@@ -172,19 +176,19 @@ class Creature():
     def draw(self):
         # offset is center of mass relative to center instead of topleft
         offset = pygame.Vector2(self.width/2, self.height/2) - self.center_of_mass 
-        rotated_surf, rect = rotate(self.surface, self.angle, self.pos, offset)
+        rotated_surf, self.rect = rotate(self.surface, self.angle, self.pos, offset)
 
         if self.invincible:
             rotated_surf.set_alpha(100)
 
-        if Settings.show_creature_rects: Zoomer.draw_rect(rect, (0,0,0,20))
-        Zoomer.draw_surf(rotated_surf, rect)
+        if Settings.show_creature_rects: Zoomer.draw_rect(self.rect, (0,0,0,20))
+        Zoomer.draw_surf(rotated_surf, self.rect)
 
         # energy bar
         if Settings.show_energy:
             energy_bar_width = 50
             energy_bar_height = 10
-            energy_bar_pos = (rect.centerx - energy_bar_width/2, rect.centery - self.height)
+            energy_bar_pos = (self.rect.centerx - energy_bar_width/2, self.rect.centery - self.height)
 
             energy_bar_back = pygame.Rect(energy_bar_pos, (energy_bar_width, energy_bar_height))
             Zoomer.draw_rect(energy_bar_back, 'black')
@@ -224,7 +228,7 @@ class Creature():
         if Settings.show_creature_com: pygame.draw.circle(self.surface, 'black', self.center_of_mass, radius=3)
 
 
-    def global_pos(self, local_pos):
+    def global_pos(self, local_pos) -> pygame.Vector2:
         """Convert local position to global world position"""
         # Translate to origin (relative to center of mass)
 
