@@ -9,4 +9,6 @@ class Settings:
     physics_enabled = True
     spawn_bananas = True
 
+    die_at_bounds = False
+
     frame_rate = 30

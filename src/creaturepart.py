@@ -1,6 +1,6 @@
 import pygame
 from enums import *
-from helper import valid_part_pos
+from helper import valid_part
 
 class CreaturePartData:
     def __init__(self, part_type, bone_index, side, pos_on_bone, size):
@@ -19,8 +19,8 @@ class CreaturePartData:
 class CreaturePart(pygame.sprite.Sprite):
     def __init__(self, creature, data, *groups):
 
-        if not valid_part_pos(creature.dna, data.bone_index, data.pos_on_bone, data.size):
-            raise Exception(f"Error: Trying to create part {type(self)} which is not valid pos. Check if valid before creating.")
+        if not valid_part(creature.dna, data):
+            raise Exception(f"Error: Trying to create part {data} which is not valid pos. Check if valid before creating.")
 
         super().__init__(*groups)
 

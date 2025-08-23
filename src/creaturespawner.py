@@ -11,19 +11,19 @@ from constants import *
 
 class CreatureSpawner:
 
-    def __init__(self, world_bounds):
-        self.world_bounds = world_bounds
+    def __init__(self):
+        pass
 
 
     def update(self):
         if len(Creature._instances) < MIN_CREATURE_AMOUNT:
             padding = 100
 
-            x = random.randint(self.world_bounds.left + padding, self.world_bounds.right - padding)
-            y = random.randint(self.world_bounds.top + padding, self.world_bounds.bottom - padding)
+            x = random.randint(WORLD_BOUNDS.left + padding, WORLD_BOUNDS.right - padding)
+            y = random.randint(WORLD_BOUNDS.top + padding, WORLD_BOUNDS.bottom - padding)
 
             dna = self.starting_dna()
-            creature = Creature(self.world_bounds, dna, (x, y))
+            creature = Creature(dna, (x, y))
 
 
     def starting_dna(self) -> DNA:

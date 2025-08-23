@@ -14,10 +14,9 @@ class Creature():
 
     _instances = list()
 
-    def __init__(self, world_bounds: pygame.Rect, dna: DNA, pos):
+    def __init__(self, dna: DNA, pos):
         Creature._instances.append(self)
 
-        self.world_bounds: pygame.Rect = world_bounds
         self.dna: DNA = dna
 
         # A creature must have at least one booster and mouth. They're going to die anyway, so 
@@ -55,10 +54,18 @@ class Creature():
 
         self.boosters: list[Booster] = []
         for booster_data in self.dna.booster_data:
+            if not valid_part(self.dna, booster_data):
+                print("Warning: Trying to add booster to creature which is not valid")
+                print(booster_data)
+
             self.boosters.append(Booster(self, booster_data))
 
         self.mouths: list[Mouth] = []
         for mouth_data in self.dna.mouth_data:
+            if not valid_part(self.dna, mouth_data):
+                print("Warning: Trying to add mouth to creature which is not valid")
+                print(mouth_data)
+
             self.mouths.append(Mouth(self, mouth_data))
         
         self.max_energy = self.mass * MAX_ENERGY_MULT
@@ -143,9 +150,22 @@ class Creature():
         
         self.angle = self.angle % 360
 
-        in_bounds = self.world_bounds.collidepoint(self.pos)
-        if not in_bounds:
-            self.die()
+        if Settings.die_at_bounds:
+            in_bounds = WORLD_BOUNDS.collidepoint(self.pos)
+            if not in_bounds:
+                self.die()
+        else:
+            if self.pos.x > WORLD_BOUNDS.right:
+                self.pos.x = WORLD_BOUNDS.left
+
+            if self.pos.x < WORLD_BOUNDS.left:
+                self.pos.x = WORLD_BOUNDS.right
+
+            if self.pos.y < WORLD_BOUNDS.top:
+                self.pos.y = WORLD_BOUNDS.bottom
+
+            if self.pos.y > WORLD_BOUNDS.bottom:
+                self.pos.y = WORLD_BOUNDS.top
 
 
     def eat(self, banana):
@@ -164,7 +184,8 @@ class Creature():
         
         offset = (0,100)
         mutated_dna = mutate_dna(self.dna)
-        offspring = Creature(self.world_bounds, mutated_dna, self.pos + offset)
+
+        offspring = Creature(mutated_dna, self.pos + offset)
 
         self.energy -= self.rep_energy_cost
 

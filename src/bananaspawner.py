@@ -2,13 +2,12 @@ import pygame
 from numpy.random import randint
 
 from banana import Banana
+from environment import Environment
 from constants import *
 from settings import Settings
 
 class BananaSpawner:
-    def __init__(self, world_bounds):
-
-        self.world_bounds: pygame.Rect = world_bounds
+    def __init__(self):
 
         # banana = Banana((650,450))
 
@@ -26,9 +25,23 @@ class BananaSpawner:
             self.spawn_banana()
 
     def spawn_banana(self):
-        padding = 40
 
-        x = randint(self.world_bounds.left + padding, self.world_bounds.right - padding)
-        y = randint(self.world_bounds.top + padding, self.world_bounds.bottom - padding)
+        spawned_banana = False
+        attempts = 0
+        max_attempts = 100
+        while not spawned_banana:
+            attempts += 1
+            if attempts >= max_attempts:
+                break
 
-        Banana(pygame.Vector2(x,y))
+            padding = 40
+
+            x = randint(WORLD_BOUNDS.left + padding, WORLD_BOUNDS.right - padding)
+            y = randint(WORLD_BOUNDS.top + padding, WORLD_BOUNDS.bottom - padding)
+
+            banana = Banana(pygame.Vector2(x,y))
+
+            if Environment.rect_in_env(banana.rect):
+                spawned_banana = True
+            else:
+                banana.kill()

@@ -107,6 +107,20 @@ class Zoomer:
 
 
     @staticmethod
+    def draw_line(pos1, pos2, color, width=1):
+
+        x1 = pos1[0]*Zoomer.zoom + Zoomer.camera_x
+        y1 = pos1[1]*Zoomer.zoom + Zoomer.camera_y
+
+        x2 = pos2[0]*Zoomer.zoom + Zoomer.camera_x
+        y2 = pos2[1]*Zoomer.zoom + Zoomer.camera_y
+
+        width = int(max(width*Zoomer.zoom,1))
+
+        pygame.draw.line(Zoomer.screen, color, (x1, y1), (x2, y2), width)
+
+
+    @staticmethod
     def draw_rect(rect: pygame.Rect, color):
         if Zoomer.screen == None:
             raise Exception("Trying to draw with Zoomer, but screen is not set.")
@@ -120,3 +134,40 @@ class Zoomer:
 
 
         pygame.draw.rect(Zoomer.screen, color, rect)
+
+
+    @staticmethod
+    def draw_circle(pos, radius, color):
+
+        x = pos[0]*Zoomer.zoom + Zoomer.camera_x
+        y = pos[1]*Zoomer.zoom + Zoomer.camera_y
+
+        radius *= Zoomer.zoom
+
+        pygame.draw.circle(Zoomer.screen, color, (x,y), radius)
+
+
+    @staticmethod
+    def draw_polygon(polygon: list[tuple[int]], color):
+
+        polygon = polygon.copy()
+
+        for i in range(len(polygon)):
+            if len(polygon[i]) != 2:
+                raise Exception(f"Trying to draw polygon but point has {len(polygon[i])} items instead of 2")
+
+            x = polygon[i][0]*Zoomer.zoom + Zoomer.camera_x
+            y = polygon[i][1]*Zoomer.zoom + Zoomer.camera_y
+
+            polygon[i] = (x,y)
+
+        pygame.draw.polygon(Zoomer.screen, color, polygon)
+
+
+    @staticmethod
+    def screen_to_world(screen_pos):
+
+        x = (screen_pos[0]-Zoomer.camera_x)/Zoomer.zoom
+        y = (screen_pos[1]-Zoomer.camera_y)/Zoomer.zoom
+
+        return (x,y)

@@ -22,14 +22,18 @@ def np_to_v2(np_array: np.ndarray) -> pygame.Vector2:
     return pygame.Vector2(np_array[0], np_array[1])
 
 
-def valid_part_pos(dna, bone_index, pos_on_bone, width):
-    bone_positions = dna.structure.get_edge_pos(bone_index)
-    bone_vector = dna.get_bone_vector(bone_index).normalize()
+def valid_part(dna, part_data):
 
-    center = bone_positions[0] + (bone_vector * pos_on_bone)
+    if part_data.size <= 0:
+        return False
 
-    part_pos1 = center - ((width/2) * bone_vector)
-    part_pos2 = center + ((width/2) * bone_vector)
+    bone_positions = dna.structure.get_edge_pos(part_data.bone_index)
+    bone_vector = dna.get_bone_vector(part_data.bone_index).normalize()
+
+    center = bone_positions[0] + (bone_vector * part_data.pos_on_bone)
+
+    part_pos1 = center - ((part_data.size/2) * bone_vector)
+    part_pos2 = center + ((part_data.size/2) * bone_vector)
     
     part_min_x = min(part_pos1[0], part_pos2[0])
     part_max_x = max(part_pos1[0], part_pos2[0])

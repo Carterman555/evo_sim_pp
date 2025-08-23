@@ -4,10 +4,8 @@ import numpy as np
 
 from creature import Creature
 from banana import Banana
-from creaturepart import CreaturePartData
-from dna import DNA
-from mouth import Mouth
 
+from environment import Environment
 from creaturespawner import CreatureSpawner
 from bananaspawner import BananaSpawner
 
@@ -18,7 +16,7 @@ from zoomer import Zoomer
 
 def main():
 
-    np.random.seed(69)
+    # np.random.seed(69)
 
     pygame.init()
 
@@ -27,12 +25,8 @@ def main():
 
     clock = pygame.time.Clock()
 
-    screen_centerx = SCREEN_WIDTH/2
-    screen_centery = SCREEN_HEIGHT/2
-    world_bounds = pygame.Rect((-WORLD_WIDTH/2 + screen_centerx,-WORLD_HEIGHT/2 + screen_centery), (WORLD_WIDTH, WORLD_HEIGHT))
-
-    creaturespawner = CreatureSpawner(world_bounds)
-    bananaspawner = BananaSpawner(world_bounds)
+    creaturespawner = CreatureSpawner()
+    bananaspawner = BananaSpawner()
 
     while True:
         for event in pygame.event.get():
@@ -42,7 +36,7 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_f:
-                    print(f"FPS: {clock.get_fps():.2f}\n")
+                    print(f"FPS: {clock.get_fps():.2f}")
                 if event.key == pygame.K_r:
                     Settings.show_creature_rects = not Settings.show_creature_rects
                 
@@ -98,7 +92,8 @@ def main():
         # Draws
         if Settings.draw:
             screen.fill("#738B75")
-            Zoomer.draw_rect(world_bounds, '#85B889')
+
+            Environment.draw()
 
             for creature in Creature._instances:
                 creature.draw()

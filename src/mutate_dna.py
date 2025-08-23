@@ -109,7 +109,7 @@ def move_joint(dna: DNA, joint_index: int, move_vector):
                         remove_part(dna, part_data)
                         continue
 
-            if not valid_part_pos(dna, part_data.bone_index, part_data.pos_on_bone, part_data.size):
+            if not valid_part(dna, part_data):
                 raise Exception("Trying to adjust part from joint movement, but part is in invalid pos.")
 
         
@@ -189,7 +189,7 @@ def move_part(dna: DNA, part_data: CreaturePartData, desired_move_amount):
     if overlapping_parts(dna, part_data):
         part_data.pos_on_bone = original_pos
 
-    if not valid_part_pos(dna, part_data.bone_index, part_data.pos_on_bone, part_data.size):
+    if not valid_part(dna, part_data):
         raise Exception("Trying to move part to invalid pos.")
 
 
@@ -218,7 +218,7 @@ def resize_part(dna: DNA, part_data: CreaturePartData, desired_resize_amount):
     if overlapping_parts(dna, part_data):
         part_data.size = original_size
 
-    if not valid_part_pos(dna, part_data.bone_index, part_data.pos_on_bone, part_data.size):
+    if not valid_part(dna, part_data):
         raise Exception("Trying to resize part, but invalid pos.")
 
 
@@ -266,7 +266,7 @@ def try_add_part(dna: DNA, part_type: PartType, size: int = None) -> bool:
         dna.mouth_data.append(part_data)
 
 
-    if not valid_part_pos(dna, part_data.bone_index, part_data.pos_on_bone, part_data.size):
+    if not valid_part(dna, part_data):
         raise Exception("Trying to add part to invalid pos.")
     else: 
         return True
@@ -297,3 +297,5 @@ def overlapping_parts(dna: DNA, part_data: CreaturePartData):
 
 def all_part_data(dna: DNA) -> list[CreaturePartData]:
     return dna.booster_data + dna.mouth_data
+
+
