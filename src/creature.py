@@ -1,8 +1,12 @@
 import pygame
 import numpy as np
+import copy
 
 from dna import DNA
 from mutate_dna import mutate_dna
+
+from neuralnetsystem import NNSystem
+
 from booster import Booster
 from mouth import Mouth
 from helper import *
@@ -18,6 +22,9 @@ class Creature():
         Creature._instances.append(self)
 
         self.dna: DNA = dna
+
+        self.genome = NNSystem.get_starting_genome()
+        self.net = NNSystem.get_net(self.genome)
 
         # A creature must have at least one booster and mouth. They're going to die anyway, so 
         # putting them out of their misery seems like the morally right action to take (and resource
@@ -102,6 +109,11 @@ class Creature():
         return max(I * scaling_factor, 0.1)  # Ensure minimum value
 
     def update(self):
+
+        actions = NNSystem.get_actions(self.net, self.energy, [(1,1),(0,0),(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)])
+
+        for i, action in enumerate(actions):
+            self.boosters[i].enabled = action
         
         if Settings.physics_enabled:
             self.handle_physics()
@@ -183,9 +195,11 @@ class Creature():
             raise Warning("Trying to reproduce create, but not enough energy.")
         
         offset = (0,100)
-        mutated_dna = mutate_dna(self.dna)
-
-        offspring = Creature(mutated_dna, self.pos + offset)
+        if Settings.mutate_body:
+            mutated_dna = mutate_dna(self.dna)
+            offspring = Creature(mutated_dna, self.pos + offset)
+        else:
+            offspring = Creature(copy.deepcopy(self.dna), self.pos + offset)
 
         self.energy -= self.rep_energy_cost
 

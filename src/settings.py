@@ -11,4 +11,6 @@ class Settings:
 
     die_at_bounds = False
 
+    mutate_body = False
+
     frame_rate = 30

@@ -13,12 +13,14 @@ from constants import *
 from enums import *
 from settings import Settings
 from zoomer import Zoomer
+from neuralnetsystem import NNSystem
 
 def main():
 
     # np.random.seed(69)
 
     pygame.init()
+    NNSystem.init()
 
     screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
     Zoomer.screen = screen

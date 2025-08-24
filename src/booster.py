@@ -7,6 +7,7 @@ from helper import *
 class Booster(CreaturePart):
     def __init__(self, creature, data: CreaturePartData):
         super().__init__(creature, data)
+        self.enabled = False
 
     def draw(self, creature_surf):
         self.image.fill('cyan')
@@ -17,4 +18,7 @@ class Booster(CreaturePart):
         creature_surf.blit(rotated_image, rotated_rect)
 
     def force_vector(self) -> pygame.Vector2:
-        return self.direction.rotate(self.creature.angle) * self.data.size * 0.1
+        if self.enabled:
+            return self.direction.rotate(self.creature.angle) * self.data.size * 0.1
+        else:
+            return pygame.Vector2(0,0)
