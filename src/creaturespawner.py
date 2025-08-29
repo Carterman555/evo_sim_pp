@@ -58,21 +58,19 @@ class CreatureSpawner:
         bones = [[i,i+1] for i in range(len(joints))]
         bones[-1][1] = 0
 
-        booster_data = [
+        parts_data = [
             CreaturePartData(PartType.BOOSTER, bone_index=0, side=BoneSide.TOP, pos_on_bone=40, size=40),
             CreaturePartData(PartType.BOOSTER, bone_index=1, side=BoneSide.TOP, pos_on_bone=40, size=40),
             CreaturePartData(PartType.BOOSTER, bone_index=2, side=BoneSide.TOP, pos_on_bone=40, size=40),
-            CreaturePartData(PartType.BOOSTER, bone_index=3, side=BoneSide.BOTTOM, pos_on_bone=40, size=40)
-        ]
+            CreaturePartData(PartType.BOOSTER, bone_index=3, side=BoneSide.BOTTOM, pos_on_bone=40, size=40),
 
-        mouth_data = [
             CreaturePartData(PartType.MOUTH, bone_index=0, side=BoneSide.BOTTOM, pos_on_bone=40, size=60),
             CreaturePartData(PartType.MOUTH, bone_index=1, side=BoneSide.BOTTOM, pos_on_bone=40, size=60),
             CreaturePartData(PartType.MOUTH, bone_index=2, side=BoneSide.BOTTOM, pos_on_bone=40, size=60),
             CreaturePartData(PartType.MOUTH, bone_index=3, side=BoneSide.TOP, pos_on_bone=40, size=60)
         ]
 
-        return DNA(joints, bones, booster_data, mouth_data)
+        return DNA(joints, bones, parts_data)
 
 
 

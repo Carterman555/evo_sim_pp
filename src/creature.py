@@ -1,6 +1,7 @@
 import pygame
 import numpy as np
 import copy
+import warnings
 
 from dna import DNA
 from mutate_dna import mutate_dna
@@ -9,8 +10,11 @@ from neuralnetsystem import NNSystem
 
 from booster import Booster
 from mouth import Mouth
+from eye import Eye
+
 from helper import *
 from constants import *
+from enums import *
 from settings import Settings
 from zoomer import Zoomer
 
@@ -28,8 +32,11 @@ class Creature():
 
         # A creature must have at least one booster and mouth. They're going to die anyway, so 
         # putting them out of their misery seems like the morally right action to take (and resource
-        # effective)
-        if len(self.dna.booster_data) == 0 or len(self.dna.mouth_data) == 0:
+        # effective
+        booster_count = len([part_data for part_data in self.dna.parts_data if part_data.type == PartType.BOOSTER])
+        mouth_count = len([part_data for part_data in self.dna.parts_data if part_data.type == PartType.MOUTH])
+        if booster_count == 0 or mouth_count == 0:
+            warnings.warn("Creature got created with no booster or no mouth. This should not happen. Killing creature.")
             self.die()
             return
 
@@ -60,27 +67,30 @@ class Creature():
         self.angular_damping = 0.95  # Rotational air resistance
 
         self.boosters: list[Booster] = []
-        for booster_data in self.dna.booster_data:
-            if not valid_part(self.dna, booster_data):
-                print("Warning: Trying to add booster to creature which is not valid")
-                print(booster_data)
-
-            self.boosters.append(Booster(self, booster_data))
-
         self.mouths: list[Mouth] = []
-        for mouth_data in self.dna.mouth_data:
-            if not valid_part(self.dna, mouth_data):
-                print("Warning: Trying to add mouth to creature which is not valid")
-                print(mouth_data)
+        self.eyes: list[Eye] = []
 
-            self.mouths.append(Mouth(self, mouth_data))
-        
+        for part_data in self.dna.parts_data:
+            if not valid_part(self.dna, part_data):
+                print("Warning: Trying to add part to creature which is not valid")
+                print(part_data)
+
+            match part_data.type:
+                case PartType.BOOSTER:
+                    self.boosters.append(Booster(self, part_data))
+                case PartType.MOUTH:
+                    self.mouths.append(Mouth(self, part_data))
+                case PartType.EYE:
+                    self.eyes.append(Eye(self, part_data))
+                case _:
+                    raise Exception(f"Trying to add {part_data.type} but it is not supported")
+                    
         self.max_energy = self.mass * MAX_ENERGY_MULT
         self.energy = self.max_energy
         self.rep_energy_cost = self.mass * REP_ENERGY_COST_MULT
 
         self.invincible = True # start invincible for a little
-        self.invincibilty_timer = INVINCIBILITY_TIME
+        self.invincibility_timer = INVINCIBILITY_TIME
 
         self.surface = pygame.Surface((self.width + padding, self.height + padding), pygame.SRCALPHA)
         self.draw_shapes()
@@ -130,8 +140,8 @@ class Creature():
             self.die()
 
         if self.invincible:
-            self.invincibilty_timer -= 1
-            if self.invincibilty_timer < 0:
+            self.invincibility_timer -= 1
+            if self.invincibility_timer < 0:
                 self.invincible = False
 
 
@@ -192,7 +202,7 @@ class Creature():
     def reproduce(self):
 
         if self.energy < self.rep_energy_cost:
-            raise Warning("Trying to reproduce create, but not enough energy.")
+            warnings.warn("Trying to reproduce creature, but not enough energy.")
         
         offset = (0,100)
         if Settings.mutate_body:

@@ -8,3 +8,4 @@ class BoneSide(Enum):
 class PartType(Enum):
     BOOSTER = 1
     MOUTH = 2
+    EYE = 3

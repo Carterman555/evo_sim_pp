@@ -31,8 +31,7 @@ def mutate_dna(dna: DNA) -> DNA:
         remove_bone(mutated_dna)
 
 
-    parts_data = all_part_data(mutated_dna)
-    for part_data in parts_data:
+    for part_data in dna.parts_data:
         if MOVE_PART_PROB * TEST_PROB_MULT > nr.rand():
             desired_move_amount = nr.randn() * AVG_PART_MOVE_AMOUNT
             move_part(mutated_dna, part_data, desired_move_amount)
@@ -58,7 +57,7 @@ def move_joint(dna: DNA, joint_index: int, move_vector):
     dna.structure.vertices[joint_index] = np.array(dna.structure.vertices[joint_index] + move_vector)
 
     # move and resize parts if needed
-    for part_data in all_part_data(dna):
+    for part_data in dna.parts_data:
         if part_data.bone_index in connected_bone_indices:
 
             og_length = next((length_tup[1] for length_tup in og_bone_lengths if length_tup[0] == part_data.bone_index), None)
@@ -87,7 +86,7 @@ def move_joint(dna: DNA, joint_index: int, move_vector):
 
                     # if bone shrunk enough to leave no room for part, remove it
                     if part_data.size <= MIN_PART_SIZE:
-                        remove_part(dna, part_data)
+                        dna.parts_data.pop(dna.parts_data.index(part_data))
                         continue
 
             else:
@@ -106,7 +105,7 @@ def move_joint(dna: DNA, joint_index: int, move_vector):
 
                     # if bone shrunk enough to leave no room for part, remove it
                     if part_data.size <= MIN_PART_SIZE:
-                        remove_part(dna, part_data)
+                        dna.parts_data.pop(dna.parts_data.index(part_data))
                         continue
 
             if not valid_part(dna, part_data):
@@ -163,9 +162,9 @@ def remove_bone(dna: DNA):
 
     if removed_bone:
         # delete parts on removed bone and adjust bone indices
-        for part_data in all_part_data(dna):
+        for part_data in dna.parts_data:
             if part_data.bone_index == bone_index:
-                remove_part(dna, part_data)
+                dna.parts_data.pop(dna.parts_data.index(part_data))
             elif part_data.bone_index > bone_index:
                 part_data.bone_index -= 1
 
@@ -212,7 +211,7 @@ def resize_part(dna: DNA, part_data: CreaturePartData, desired_resize_amount):
     part_data.size = np.min((part_data.size, max_size))
 
     if part_data.size <= MIN_PART_SIZE:
-        remove_part(dna, part_data)
+        dna.parts_data.pop(dna.parts_data.index(part_data))
         return
 
     if overlapping_parts(dna, part_data):
@@ -260,11 +259,7 @@ def try_add_part(dna: DNA, part_type: PartType, size: int = None) -> bool:
 
         overlapping = overlapping_parts(dna, part_data)
 
-    if part_type == PartType.BOOSTER:
-        dna.booster_data.append(part_data)
-    if part_type == PartType.MOUTH:
-        dna.mouth_data.append(part_data)
-
+        dna.parts_data.append(part_data)
 
     if not valid_part(dna, part_data):
         raise Exception("Trying to add part to invalid pos.")
@@ -272,15 +267,8 @@ def try_add_part(dna: DNA, part_type: PartType, size: int = None) -> bool:
         return True
 
 
-def remove_part(dna: DNA, part_data: CreaturePartData):
-    if part_data.type == PartType.BOOSTER:
-        dna.booster_data.pop(dna.booster_data.index(part_data))
-    elif part_data.type == PartType.MOUTH:
-        dna.mouth_data.pop(dna.mouth_data.index(part_data))
-
-
 def overlapping_parts(dna: DNA, part_data: CreaturePartData):
-    for other_part_data in all_part_data(dna):
+    for other_part_data in dna.parts_data:
         if other_part_data == part_data:
             continue
         
@@ -293,9 +281,5 @@ def overlapping_parts(dna: DNA, part_data: CreaturePartData):
             if distance < min_distance:
                 return True
     return False
-
-
-def all_part_data(dna: DNA) -> list[CreaturePartData]:
-    return dna.booster_data + dna.mouth_data
 
 
